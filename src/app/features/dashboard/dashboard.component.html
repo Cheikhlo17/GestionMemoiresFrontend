@@ -1,0 +1,17 @@
+<mat-toolbar color="primary">
+  <span>University Thesis Management System</span>
+  <span class="spacer"></span>
+  @if (authService.currentUser(); as user) {
+    <span class="user-name">{{ user.full_name }} ({{ user.role.name }})</span>
+  }
+  <button mat-icon-button (click)="logout()" aria-label="Logout">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="dashboard-content">
+  <mat-card>
+    <h2>Welcome back, {{ authService.currentUser()?.first_name }}</h2>
+    <p>Your role: {{ authService.currentRole() }}</p>
+  </mat-card>
+</div>

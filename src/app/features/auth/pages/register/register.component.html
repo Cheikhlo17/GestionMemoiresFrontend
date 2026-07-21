@@ -1,0 +1,94 @@
+<!-- src/app/features/auth/pages/register/register.component.html -->
+<div class="auth-page">
+  <mat-card class="auth-page__card">
+    <h1 class="auth-page__title">Create Account</h1>
+    <p class="auth-page__subtitle">Register for the Thesis Management System</p>
+
+    @if (errorMessage()) {
+      <p class="auth-page__error">{{ errorMessage() }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <mat-form-field class="auth-page__field" appearance="outline">
+        <mat-label>First Name</mat-label>
+        <input matInput formControlName="first_name" placeholder="Cheikh" />
+        @if (form.get('first_name')?.hasError('required') && form.get('first_name')?.touched) {
+          <mat-error>First name is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="auth-page__field" appearance="outline">
+        <mat-label>Last Name</mat-label>
+        <input matInput formControlName="last_name"  placeholder="Diouf"/>
+        @if (form.get('last_name')?.hasError('required') && form.get('last_name')?.touched) {
+          <mat-error>Last name is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="auth-page__field" appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" placeholder="nom@exemple.com" />
+        @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+          <mat-error>Email is required.</mat-error>
+        }
+        @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+          <mat-error>Enter a valid email address.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="auth-page__field" appearance="outline">
+        <mat-label>Phone (optional)</mat-label>
+        <input matInput formControlName="phone" placeholder="77 777  50 50"/>
+      </mat-form-field>
+
+      <mat-form-field class="auth-page__field" appearance="outline">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          [type]="hidePassword() ? 'password' : 'text'"
+          formControlName="password"
+          placeholder="password"
+        />
+        <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
+          <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+          <mat-error>Password is required.</mat-error>
+        }
+        @if (form.get('password')?.hasError('strongPassword') && form.get('password')?.touched) {
+          <mat-error>Must have 8+ chars, upper, lower, number & symbol.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="auth-page__field" appearance="outline">
+        <mat-label>Confirm Password</mat-label>
+        <input
+          matInput
+          [type]="hideConfirm() ? 'password' : 'text'"
+          formControlName="password_confirmation"
+          placeholder="password"
+        />
+        <button mat-icon-button matSuffix type="button" (click)="toggleConfirmVisibility()">
+          <mat-icon>{{ hideConfirm() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (form.get('password_confirmation')?.hasError('passwordMismatch') && form.get('password_confirmation')?.touched) {
+          <mat-error>Passwords do not match.</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="auth-page__actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            Create Account
+          }
+        </button>
+      </div>
+    </form>
+
+    <div class="auth-page__footer">
+      <p>Already have an account? <a routerLink="/auth/login">Sign in</a></p>
+    </div>
+  </mat-card>
+</div>
