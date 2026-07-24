@@ -1,4 +1,3 @@
-// src/app/app.routes.ts (updated: adds forbidden route + example role-guarded route)
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
@@ -18,6 +17,14 @@ export const routes: Routes = [
         (m) => m.DashboardComponent
       ),
     title: 'Dashboard',
+  },
+  {
+    path: 'students',
+    canActivate: [authGuard, roleGuard(['administrator', 'head-of-department'])],
+    loadChildren: () =>
+      import('./features/students/students.routes').then(
+        (m) => m.STUDENTS_ROUTES
+      ),
   },
   {
     path: 'admin',

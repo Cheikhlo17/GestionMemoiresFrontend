@@ -1,0 +1,115 @@
+<div class="students-page">
+  <div class="students-page__header">
+    <h1>Students</h1>
+    <a mat-flat-button color="primary" routerLink="/students/create">
+      <mat-icon>add</mat-icon>
+      New Student
+    </a>
+  </div>
+
+  <mat-card class="students-page__filters">
+    <form [formGroup]="filterForm" class="filters-form">
+      <mat-form-field appearance="outline" class="filters-form__search">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Name, email, or student number" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Department</mat-label>
+        <mat-select formControlName="department_id">
+          <mat-option [value]="null">All Departments</mat-option>
+          @for (dept of departments(); track dept.id) {
+            <mat-option [value]="dept.id">{{ dept.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Program</mat-label>
+        <mat-select formControlName="program_id">
+          <mat-option [value]="null">All Programs</mat-option>
+          @for (program of programs(); track program.id) {
+            <mat-option [value]="program.id">{{ program.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option [value]="null">All Statuses</mat-option>
+          @for (status of statusOptions; track status) {
+            <mat-option [value]="status">{{ status }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card>
+
+  <mat-card class="students-page__table-card">
+    <div class="table-container">
+      <table mat-table [dataSource]="students()" matSort (matSortChange)="onSortChange($event)">
+        <ng-container matColumnDef="student_number">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Student No.</th>
+          <td mat-cell *matCellDef="let s">{{ s.student_number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="full_name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let s">{{ s.full_name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let s">{{ s.email }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="department">
+          <th mat-header-cell *matHeaderCellDef>Department</th>
+          <td mat-cell *matCellDef="let s">{{ s.department?.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="program">
+          <th mat-header-cell *matHeaderCellDef>Program</th>
+          <td mat-cell *matCellDef="let s">{{ s.program?.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+          <td mat-cell *matCellDef="let s">
+            <span class="status-badge" [class]="'status-badge--' + s.status">{{ s.status }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let s">
+            <a mat-icon-button [routerLink]="['/students', s.id, 'edit']" matTooltip="Edit">
+              <mat-icon>edit</mat-icon>
+            </a>
+            <button mat-icon-button color="warn" (click)="deleteStudent(s)" matTooltip="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      @if (!isLoading() && students().length === 0) {
+        <p class="empty-state">No students found.</p>
+      }
+    </div>
+
+    <mat-paginator
+      [length]="totalItems()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 15, 25, 50]"
+      (page)="onPageChange($event)"
+    >
+    </mat-paginator>
+  </mat-card>
+</div>

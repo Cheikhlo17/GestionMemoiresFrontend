@@ -1,0 +1,92 @@
+<div class="student-form-page">
+  <mat-card>
+    <h1>{{ isEditMode() ? 'Edit Student' : 'New Student' }}</h1>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="student-form">
+      <div class="student-form__row">
+        <mat-form-field appearance="outline">
+          <mat-label>First Name</mat-label>
+          <input matInput formControlName="first_name" placeholder="Cheikh"/>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last Name</mat-label>
+          <input matInput formControlName="last_name" placeholder="Diouf" />
+        </mat-form-field>
+      </div>
+
+      <div class="student-form__row">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="name@example.com" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone"  placeholder="77 777 50 50"/>
+        </mat-form-field>
+      </div>
+
+      <div class="student-form__row">
+        <mat-form-field appearance="outline">
+          <mat-label>Department</mat-label>
+          <mat-select formControlName="department_id">
+            @for (dept of departments(); track dept.id) {
+              <mat-option [value]="dept.id">{{ dept.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Program</mat-label>
+          <mat-select formControlName="program_id">
+            @for (program of programs(); track program.id) {
+              <mat-option [value]="program.id">{{ program.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="student-form__row">
+        <mat-form-field appearance="outline">
+          <mat-label>Academic Year</mat-label>
+          <mat-select formControlName="academic_year_id">
+            @for (year of academicYears(); track year.id) {
+              <mat-option [value]="year.id">{{ year.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Student Number</mat-label>
+          <input matInput formControlName="student_number"  placeholder="6112"/>
+        </mat-form-field>
+      </div>
+
+      <div class="student-form__row">
+        <mat-form-field appearance="outline">
+          <mat-label>Enrollment Date</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="enrollment_date" placeholder="Date" />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            @for (status of statusOptions; track status) {
+              <mat-option [value]="status">{{ status }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="student-form__actions">
+        <a mat-button routerLink="/students">Cancel</a>
+        <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+          {{ isEditMode() ? 'Save Changes' : 'Create Student' }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>
