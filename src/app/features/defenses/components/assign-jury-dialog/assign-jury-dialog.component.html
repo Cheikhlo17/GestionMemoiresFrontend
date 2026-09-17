@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>Assign Jury Panel</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="jury-form">
+    <mat-form-field appearance="outline">
+      <mat-label>President</mat-label>
+      <mat-select formControlName="president_id">
+        @for (member of juryOptions(); track member.id) {
+          <mat-option [value]="member.id">{{ member.full_name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Examiner</mat-label>
+      <mat-select formControlName="examiner_id">
+        @for (member of juryOptions(); track member.id) {
+          <mat-option [value]="member.id">{{ member.full_name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Reporter</mat-label>
+      <mat-select formControlName="reporter_id">
+        @for (member of juryOptions(); track member.id) {
+          <mat-option [value]="member.id">{{ member.full_name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (form.hasError('duplicate')) {
+      <p class="jury-form__error">Each jury member can only hold one role on this panel.</p>
+    }
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" (click)="submit()">Assign</button>
+</mat-dialog-actions>

@@ -27,6 +27,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'theses',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./features/theses/theses.routes').then((m) => m.THESES_ROUTES),
+  },
+  {
+    path: 'defenses',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./features/defenses/defenses.routes').then(
+        (m) => m.DEFENSES_ROUTES
+      ),
+  },
+  {
     path: 'admin',
     canActivate: [authGuard, roleGuard(['administrator'])],
     loadChildren: () =>

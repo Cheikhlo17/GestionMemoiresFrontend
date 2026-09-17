@@ -1,0 +1,101 @@
+.defense-detail-page {
+  padding: 24px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__info {
+    padding: 16px;
+    margin-bottom: 16px;
+
+    p {
+      margin: 4px 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 12px;
+  }
+}
+
+.jury-card,
+.result-card {
+  padding: 16px;
+  margin-bottom: 16px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  h2 {
+    font-size: 16px;
+    margin: 0 0 8px;
+  }
+}
+
+.result-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+
+  mat-form-field {
+    flex: 1 1 160px;
+  }
+
+  &__remarks {
+    flex: 2 1 300px;
+  }
+
+  button {
+    height: 44px;
+    margin-top: 8px;
+  }
+}
+
+.empty-state {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+
+  &--scheduled {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+  &--completed {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  &--cancelled {
+    background: #ffebee;
+    color: #c62828;
+  }
+  &--postponed {
+    background: #fff3e0;
+    color: #ef6c00;
+  }
+}

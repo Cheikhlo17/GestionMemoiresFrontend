@@ -1,0 +1,51 @@
+<div class="calendar-page">
+  <div class="calendar-page__header">
+    <h1>Defense Calendar</h1>
+    @if (canSchedule) {
+      <a mat-flat-button color="primary" routerLink="/defenses/schedule">
+        <mat-icon>add</mat-icon>
+        Schedule Defense
+      </a>
+    }
+  </div>
+
+  <mat-card class="calendar-page__controls">
+    <div class="nav-controls">
+      <button mat-icon-button (click)="previousWeek()"><mat-icon>chevron_left</mat-icon></button>
+      <button mat-button (click)="today()">Today</button>
+      <button mat-icon-button (click)="nextWeek()"><mat-icon>chevron_right</mat-icon></button>
+    </div>
+
+    <mat-form-field appearance="outline" class="room-filter">
+      <mat-label>Room</mat-label>
+      <mat-select [(ngModel)]="selectedRoomId" (selectionChange)="onRoomChange()">
+        <mat-option [value]="null">All Rooms</mat-option>
+        @for (room of rooms(); track room.id) {
+          <mat-option [value]="room.id">{{ room.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </mat-card>
+
+  <div class="calendar-grid">
+    @for (day of days(); track day.date) {
+      <mat-card class="calendar-day" [class.calendar-day--today]="day.isToday">
+        <div class="calendar-day__label">{{ day.date | date: 'EEE, MMM d' }}</div>
+
+        @for (defense of day.defenses; track defense.id) {
+          <a
+            class="defense-chip"
+            [class]="'defense-chip--' + defense.status"
+            [routerLink]="['/defenses', defense.id]"
+          >
+            <strong>{{ defense.scheduled_at | date: 'shortTime' }}</strong>
+            <span>{{ defense.thesis.title }}</span>
+            <small>{{ defense.room.name }}</small>
+          </a>
+        } @empty {
+          <p class="no-defense">No defenses</p>
+        }
+      </mat-card>
+    }
+  </div>
+</div>

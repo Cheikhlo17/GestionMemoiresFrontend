@@ -1,0 +1,60 @@
+<div class="defense-form-page">
+  <mat-card>
+    <h1>Schedule Defense</h1>
+
+    @if (errorMessage()) {
+      <p class="defense-form-page__error">{{ errorMessage() }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="defense-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Thesis</mat-label>
+        <mat-select formControlName="thesis_id">
+          @for (thesis of approvedTheses(); track thesis.id) {
+            <mat-option [value]="thesis.id">
+              {{ thesis.title }} — {{ thesis.student.full_name }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (approvedTheses().length === 0) {
+          <mat-hint>No approved theses are currently awaiting a defense date.</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Room</mat-label>
+        <mat-select formControlName="defense_room_id">
+          @for (room of rooms(); track room.id) {
+            <mat-option [value]="room.id">{{ room.name }} ({{ room.building }})</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <div class="defense-form__row">
+        <mat-form-field appearance="outline">
+          <mat-label>Date</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="date" placeholder="Date"/>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Time</mat-label>
+          <input matInput type="time" formControlName="time" placeholder="Time"/>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Duration (minutes)</mat-label>
+          <input matInput type="number" formControlName="duration_minutes" placeholder="Duration"/>
+        </mat-form-field>
+      </div>
+
+      <div class="defense-form__actions">
+        <a mat-button routerLink="/defenses">Cancel</a>
+        <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+          Schedule Defense
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

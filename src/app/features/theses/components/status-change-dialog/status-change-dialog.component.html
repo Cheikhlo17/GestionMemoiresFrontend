@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>Update Thesis Status</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="status-form">
+    <mat-form-field appearance="outline">
+      <mat-label>New Status</mat-label>
+      <mat-select formControlName="status">
+        @for (status of data.allowedStatuses; track status) {
+          <mat-option [value]="status">{{ status.replace('_', ' ') }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Remarks (optional)</mat-label>
+      <textarea matInput rows="3" formControlName="remarks" placeholder="Remarks"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" (click)="submit()">Update</button>
+</mat-dialog-actions>

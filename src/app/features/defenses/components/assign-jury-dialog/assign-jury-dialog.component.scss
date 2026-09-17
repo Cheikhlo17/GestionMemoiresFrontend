@@ -1,0 +1,23 @@
+.jury-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 320px;
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  &__error {
+    color: #c62828;
+    background: #ffebee;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin: 4px 0 0;
+  }
+
+  @media (max-width: 480px) {
+    min-width: 100%;
+  }
+}

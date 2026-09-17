@@ -1,0 +1,75 @@
+@if (schedule(); as s) {
+  <div class="defense-detail-page">
+    <div class="defense-detail-page__header">
+      <div>
+        <h1>{{ s.thesis.title }}</h1>
+        <span class="status-badge" [class]="'status-badge--' + s.status">{{ s.status }}</span>
+      </div>
+      <div class="defense-detail-page__actions">
+        <button mat-stroked-button (click)="downloadReport()" [disabled]="isDownloading()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Download Report
+        </button>
+        @if (canManage && s.status === 'scheduled') {
+          <button mat-stroked-button color="warn" (click)="cancelDefense()">Cancel Defense</button>
+        }
+      </div>
+    </div>
+
+    <mat-card class="defense-detail-page__info">
+      <p><strong>Student:</strong> {{ s.thesis.student_name }}</p>
+      <p><strong>Supervisor:</strong> {{ s.thesis.supervisor_name ?? 'N/A' }}</p>
+      <p><strong>Date/Time:</strong> {{ s.scheduled_at | date: 'full' }} ({{ s.duration_minutes }} min)</p>
+      <p><strong>Room:</strong> {{ s.room.name }} — {{ s.room.building }}</p>
+    </mat-card>
+
+    <mat-card class="jury-card">
+      <div class="jury-card__header">
+        <h2>Jury Panel</h2>
+        @if (canManage && s.status === 'scheduled') {
+          <button mat-button color="primary" (click)="openAssignJuryDialog()">
+            {{ s.jury_members.length ? 'Edit Panel' : 'Assign Jury' }}
+          </button>
+        }
+      </div>
+
+      @if (s.jury_members.length > 0) {
+        <mat-chip-set>
+          @for (j of s.jury_members; track j.id) {
+            <mat-chip>{{ j.full_name }} — {{ j.role }}</mat-chip>
+          }
+        </mat-chip-set>
+      } @else {
+        <p class="empty-state">No jury panel assigned yet.</p>
+      }
+    </mat-card>
+
+    @if (canRecordResult && s.status !== 'cancelled') {
+      <mat-card class="result-card">
+        <h2>Defense Result</h2>
+        <form [formGroup]="resultForm" (ngSubmit)="submitResult()" class="result-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Final Grade (0-20)</mat-label>
+            <input matInput type="number" formControlName="final_grade" min="0" max="20" placeholder="Final grade" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Verdict</mat-label>
+            <mat-select formControlName="verdict">
+              <mat-option value="pass">Pass</mat-option>
+              <mat-option value="pass_with_revisions">Pass with Revisions</mat-option>
+              <mat-option value="fail">Fail</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="result-form__remarks">
+            <mat-label>Remarks</mat-label>
+            <textarea matInput rows="3" formControlName="remarks" placeholder="Enter remarks"></textarea>
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit">Save Result</button>
+        </form>
+      </mat-card>
+    }
+  </div>
+}

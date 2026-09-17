@@ -1,0 +1,56 @@
+<div class="thesis-form-page">
+  <mat-card>
+    <h1>New Thesis</h1>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="thesis-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title"  placeholder="Title"/>
+        @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+          <mat-error>Title is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Abstract</mat-label>
+        <textarea matInput rows="5" formControlName="abstract" placeholder="Abstract"></textarea>
+      </mat-form-field>
+
+      <div class="thesis-form__row">
+        <mat-form-field appearance="outline">
+          <mat-label>Department</mat-label>
+          <mat-select formControlName="department_id">
+            @for (dept of departments(); track dept.id) {
+              <mat-option [value]="dept.id">{{ dept.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Program</mat-label>
+          <mat-select formControlName="program_id">
+            @for (program of programs(); track program.id) {
+              <mat-option [value]="program.id">{{ program.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Academic Year</mat-label>
+          <mat-select formControlName="academic_year_id">
+            @for (year of academicYears(); track year.id) {
+              <mat-option [value]="year.id">{{ year.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="thesis-form__actions">
+        <a mat-button routerLink="/theses">Cancel</a>
+        <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+          Create Draft
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

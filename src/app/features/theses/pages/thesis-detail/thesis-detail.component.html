@@ -1,0 +1,121 @@
+@if (thesis(); as t) {
+  <div class="thesis-detail-page">
+    <div class="thesis-detail-page__header">
+      <div>
+        <h1>{{ t.title }}</h1>
+        <span class="status-badge" [class]="'status-badge--' + t.status">
+          {{ t.status.replace('_', ' ') }}
+        </span>
+      </div>
+      <div class="thesis-detail-page__actions">
+        @if (t.status === 'draft' && isOwner) {
+          <button mat-flat-button color="primary" (click)="submitThesis()">
+            Submit for Review
+          </button>
+        }
+        @if (allowedNextStatuses.length > 0 && !isOwner) {
+          <button mat-stroked-button color="primary" (click)="openStatusDialog()">
+            Change Status
+          </button>
+        }
+      </div>
+    </div>
+
+    <mat-card class="thesis-detail-page__info">
+      <p><strong>Student:</strong> {{ t.student.full_name }} ({{ t.student.student_number }})</p>
+      <p><strong>Supervisor:</strong> {{ t.supervisor?.full_name ?? 'Not yet assigned' }}</p>
+      <p><strong>Department:</strong> {{ t.department?.name }} — <strong>Program:</strong> {{ t.program?.name }}</p>
+      @if (t.abstract) {
+        <p><strong>Abstract:</strong> {{ t.abstract }}</p>
+      }
+    </mat-card>
+
+    <mat-tab-group class="thesis-detail-page__tabs">
+      <mat-tab label="Versions">
+        <div class="tab-content">
+          @if (isOwner) {
+            <div class="upload-row">
+              <input type="file" accept=".pdf,.docx,.zip" (change)="onFileSelected($event)"  placeholder="File"/>
+              <button
+                mat-flat-button
+                color="primary"
+                [disabled]="!selectedFile() || isUploading()"
+                (click)="uploadFile()"
+              >
+                Upload New Version
+              </button>
+            </div>
+          }
+
+          <mat-list>
+            @for (v of t.versions; track v.id) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>description</mat-icon>
+                <div matListItemTitle>v{{ v.version_number }} — {{ v.file_name }}</div>
+                <div matListItemLine>
+                  Uploaded by {{ v.uploaded_by?.full_name }} on {{ v.created_at | date: 'medium' }}
+                </div>
+                <button mat-icon-button (click)="downloadVersion(v.id, v.file_name)">
+                  <mat-icon>download</mat-icon>
+                </button>
+              </mat-list-item>
+              <mat-divider></mat-divider>
+            } @empty {
+              <p class="empty-state">No versions uploaded yet.</p>
+            }
+          </mat-list>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Comments">
+        <div class="tab-content">
+          <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="comment-form">
+            <mat-form-field appearance="outline" class="comment-form__field">
+              <mat-label>Add a comment</mat-label>
+              <textarea matInput rows="2" formControlName="content" placeholder="Comments"></textarea>
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="isCommenting()">
+              Post
+            </button>
+          </form>
+
+          <mat-list>
+            @for (c of t.comments; track c.id) {
+              <mat-list-item class="comment-item">
+                <div matListItemTitle>{{ c.author.full_name }} ({{ c.author.role }})</div>
+                <div matListItemLine>{{ c.content }}</div>
+                <div matListItemLine class="comment-date">{{ c.created_at | date: 'medium' }}</div>
+              </mat-list-item>
+              <mat-divider></mat-divider>
+            } @empty {
+              <p class="empty-state">No comments yet.</p>
+            }
+          </mat-list>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Status History">
+        <div class="tab-content">
+          <mat-list>
+            @for (h of t.status_histories; track h.id) {
+              <mat-list-item>
+                <div matListItemTitle>
+                  {{ h.from_status?.replace('_',' ') ?? 'created' }} → {{ h.to_status.replace('_',' ') }}
+                </div>
+                <div matListItemLine>
+                  By {{ h.changed_by.full_name }} on {{ h.created_at | date: 'medium' }}
+                </div>
+                @if (h.remarks) {
+                  <div matListItemLine>{{ h.remarks }}</div>
+                }
+              </mat-list-item>
+              <mat-divider></mat-divider>
+            } @empty {
+              <p class="empty-state">No status changes recorded yet.</p>
+            }
+          </mat-list>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+}
