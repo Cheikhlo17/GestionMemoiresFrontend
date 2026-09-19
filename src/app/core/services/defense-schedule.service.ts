@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiSuccessResponse } from '../models/auth-response.model';
+import { DefenseJuryEvaluation, JuryEvaluationPayload } from '../models/defense-evaluation.model';
 import { DefenseResult, DefenseSchedule } from '../models/defense-schedule.model';
 import {
   AssignJuryPayload,
@@ -26,6 +27,10 @@ export class DefenseScheduleService {
     return this.http.get<ApiSuccessResponse<DefenseSchedule[]>>(`${this.baseUrl}/calendar`, {
       params,
     });
+  }
+
+  mine(): Observable<ApiSuccessResponse<DefenseSchedule[]>> {
+    return this.http.get<ApiSuccessResponse<DefenseSchedule[]>>(`${this.baseUrl}/mine`);
   }
 
   get(id: number): Observable<ApiSuccessResponse<DefenseSchedule>> {
@@ -62,5 +67,21 @@ export class DefenseScheduleService {
 
   downloadReport(id: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/${id}/report`, { responseType: 'blob' });
+  }
+
+  listEvaluations(id: number): Observable<ApiSuccessResponse<DefenseJuryEvaluation[]>> {
+    return this.http.get<ApiSuccessResponse<DefenseJuryEvaluation[]>>(
+      `${this.baseUrl}/${id}/evaluations`
+    );
+  }
+
+  submitEvaluation(
+    id: number,
+    payload: JuryEvaluationPayload
+  ): Observable<ApiSuccessResponse<DefenseJuryEvaluation>> {
+    return this.http.post<ApiSuccessResponse<DefenseJuryEvaluation>>(
+      `${this.baseUrl}/${id}/evaluations`,
+      payload
+    );
   }
 }

@@ -1,17 +1,18 @@
-<mat-toolbar color="primary">
-  <span>University Thesis Management System</span>
-  <span class="spacer"></span>
+<!-- src/app/features/dashboard/dashboard.component.html -->
+<div class="dashboard-page">
   @if (authService.currentUser(); as user) {
-    <span class="user-name">{{ user.full_name }} ({{ user.role.name }})</span>
+    <h1>Welcome back, {{ user.first_name }}</h1>
+    <p class="dashboard-page__role">{{ user.role.name }}</p>
   }
-  <button mat-icon-button (click)="logout()" aria-label="Logout">
-    <mat-icon>logout</mat-icon>
-  </button>
-</mat-toolbar>
 
-<div class="dashboard-content">
-  <mat-card>
-    <h2>Welcome back, {{ authService.currentUser()?.first_name }}</h2>
-    <p>Your role: {{ authService.currentRole() }}</p>
-  </mat-card>
+  <div class="dashboard-page__grid">
+    @for (action of quickActions; track action.route) {
+      <mat-card class="action-card">
+        <mat-icon class="action-card__icon">{{ action.icon }}</mat-icon>
+        <h3>{{ action.label }}</h3>
+        <p>{{ action.description }}</p>
+        <a mat-button color="primary" [routerLink]="action.route">Go</a>
+      </mat-card>
+    }
+  </div>
 </div>

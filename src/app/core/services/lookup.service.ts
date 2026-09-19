@@ -8,6 +8,7 @@ import { Department } from '../models/department.model';
 import { DefenseRoom } from '../models/defense-room.model';
 import { JuryMember } from '../models/jury-member.model';
 import { Program } from '../models/program.model';
+import { Supervisor } from '../models/supervisor.model';
 
 @Injectable({ providedIn: 'root' })
 export class LookupService {
@@ -40,6 +41,16 @@ export class LookupService {
       params = params.set('department_id', departmentId);
     }
     return this.http.get<ApiSuccessResponse<JuryMember[]>>(`${this.baseUrl}/jury-members`, {
+      params,
+    });
+  }
+
+  supervisors(departmentId?: number): Observable<ApiSuccessResponse<Supervisor[]>> {
+    let params = new HttpParams();
+    if (departmentId) {
+      params = params.set('department_id', departmentId);
+    }
+    return this.http.get<ApiSuccessResponse<Supervisor[]>>(`${this.baseUrl}/supervisors`, {
       params,
     });
   }

@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>Assign Supervisor</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="assign-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Supervisor</mat-label>
+      <mat-select formControlName="supervisor_id">
+        @for (s of supervisors(); track s.id) {
+          <mat-option [value]="s.id">
+            {{ s.full_name }} — {{ s.specialization ?? 'General' }}
+          </mat-option>
+        }
+      </mat-select>
+      @if (supervisors().length === 0) {
+        <mat-hint>No active supervisors found in this department.</mat-hint>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" (click)="submit()">Assign</button>
+</mat-dialog-actions>

@@ -1,0 +1,45 @@
+<mat-sidenav-container class="layout">
+  <mat-sidenav
+    #sidenav
+    mode="side"
+    [opened]="isSidenavOpen()"
+    class="layout__sidenav"
+  >
+    <div class="layout__brand">
+      <mat-icon>school</mat-icon>
+      <span>Thesis Manager</span>
+    </div>
+
+    <mat-nav-list>
+      @for (item of navItems; track item.route) {
+        <mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="layout__nav-item--active"
+          class="layout__nav-item"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </mat-list-item>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="layout__toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="layout__spacer"></span>
+      @if (authService.currentUser(); as user) {
+        <span class="layout__user">{{ user.full_name }} · {{ user.role.name }}</span>
+      }
+      <button mat-icon-button (click)="logout()" matTooltip="Logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <div class="layout__content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

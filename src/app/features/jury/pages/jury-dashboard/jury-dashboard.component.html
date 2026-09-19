@@ -1,0 +1,52 @@
+<div class="jury-page">
+  <h1>My Defenses</h1>
+
+  <mat-tab-group>
+    <mat-tab label="Upcoming ({{ upcoming().length }})">
+      <div class="tab-content">
+        @for (s of upcoming(); track s.id) {
+          <mat-card class="defense-card">
+            <div class="defense-card__main">
+              <h3>{{ s.thesis.title }}</h3>
+              <p><strong>Student:</strong> {{ s.thesis.student_name }}</p>
+              <p><strong>Supervisor:</strong> {{ s.thesis.supervisor_name ?? 'N/A' }}</p>
+              <p>
+                <mat-icon inline>event</mat-icon> {{ s.scheduled_at | date: 'full' }} ·
+                <mat-icon inline>room</mat-icon> {{ s.room.name }}
+              </p>
+            </div>
+            <a mat-flat-button color="primary" [routerLink]="['/defenses', s.id]">
+              Open
+            </a>
+          </mat-card>
+        } @empty {
+          <p class="empty-state">No upcoming defenses assigned to you.</p>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="History ({{ history().length }})">
+      <div class="tab-content">
+        @for (s of history(); track s.id) {
+          <mat-card class="defense-card">
+            <div class="defense-card__main">
+              <h3>{{ s.thesis.title }}</h3>
+              <p><strong>Student:</strong> {{ s.thesis.student_name }}</p>
+              <p>{{ s.scheduled_at | date: 'medium' }}</p>
+              @if (s.result; as result) {
+  @if (result.verdict; as verdict) {
+    <span class="verdict-badge" [class]="'verdict-badge--' + verdict">
+      {{ verdict.replace('_', ' ') }}
+    </span>
+  }
+}
+            </div>
+            <a mat-stroked-button [routerLink]="['/defenses', s.id]">View</a>
+          </mat-card>
+        } @empty {
+          <p class="empty-state">No past defenses yet.</p>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

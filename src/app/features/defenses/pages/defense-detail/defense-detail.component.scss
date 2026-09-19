@@ -36,7 +36,8 @@
 }
 
 .jury-card,
-.result-card {
+.result-card,
+.deliberation-card {
   padding: 16px;
   margin-bottom: 16px;
 
@@ -50,6 +51,26 @@
     font-size: 16px;
     margin: 0 0 8px;
   }
+}
+
+.evaluation-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  flex-wrap: wrap;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.evaluation-remarks {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.65);
 }
 
 .result-form {
@@ -82,20 +103,19 @@
   font-size: 12px;
   text-transform: capitalize;
 
-  &--scheduled {
-    background: #e3f2fd;
-    color: #1565c0;
-  }
-  &--completed {
-    background: #e8f5e9;
-    color: #2e7d32;
-  }
-  &--cancelled {
-    background: #ffebee;
-    color: #c62828;
-  }
-  &--postponed {
-    background: #fff3e0;
-    color: #ef6c00;
-  }
+  &--scheduled { background: #e3f2fd; color: #1565c0; }
+  &--completed { background: #e8f5e9; color: #2e7d32; }
+  &--cancelled { background: #ffebee; color: #c62828; }
+  &--postponed { background: #fff3e0; color: #ef6c00; }
+}
+
+.verdict-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+
+  &--pass { background: #e8f5e9; color: #2e7d32; }
+  &--pass_with_revisions { background: #fff3e0; color: #ef6c00; }
+  &--fail { background: #ffebee; color: #c62828; }
 }

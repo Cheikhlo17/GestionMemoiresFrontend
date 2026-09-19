@@ -1,0 +1,42 @@
+.layout {
+  height: 100vh;
+
+  &__sidenav {
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  &__nav-item--active {
+    background: rgba(26, 35, 126, 0.08);
+    color: #1a237e;
+  }
+
+  &__toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  &__spacer {
+    flex: 1 1 auto;
+  }
+
+  &__user {
+    font-size: 13px;
+    margin-right: 8px;
+  }
+
+  &__content {
+    min-height: calc(100vh - 64px);
+  }
+}

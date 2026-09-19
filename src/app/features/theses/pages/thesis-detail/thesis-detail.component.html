@@ -7,24 +7,29 @@
           {{ t.status.replace('_', ' ') }}
         </span>
       </div>
-      <div class="thesis-detail-page__actions">
-        @if (t.status === 'draft' && isOwner) {
-          <button mat-flat-button color="primary" (click)="submitThesis()">
-            Submit for Review
-          </button>
-        }
-        @if (allowedNextStatuses.length > 0 && !isOwner) {
-          <button mat-stroked-button color="primary" (click)="openStatusDialog()">
-            Change Status
-          </button>
-        }
-      </div>
+  <div class="thesis-detail-page__actions">
+  @if (canAssignSupervisor) {
+    <button mat-stroked-button (click)="openAssignSupervisorDialog()">
+      {{ t.supervisor ? 'Change Supervisor' : 'Assign Supervisor' }}
+    </button>
+  }
+  @if (t.status === 'draft' && isOwner) {
+    <button mat-flat-button color="primary" (click)="submitThesis()">
+      Submit for Review
+    </button>
+  }
+  @if (allowedNextStatuses.length > 0 && !isOwner) {
+    <button mat-stroked-button color="primary" (click)="openStatusDialog()">
+      Change Status
+    </button>
+  }
+</div>
     </div>
 
     <mat-card class="thesis-detail-page__info">
       <p><strong>Student:</strong> {{ t.student.full_name }} ({{ t.student.student_number }})</p>
       <p><strong>Supervisor:</strong> {{ t.supervisor?.full_name ?? 'Not yet assigned' }}</p>
-      <p><strong>Department:</strong> {{ t.department?.name }} — <strong>Program:</strong> {{ t.program?.name }}</p>
+      <p><strong>Department:</strong> {{ t.department.name }} — <strong>Program:</strong> {{ t.program.name }}</p>
       @if (t.abstract) {
         <p><strong>Abstract:</strong> {{ t.abstract }}</p>
       }

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -18,6 +18,9 @@ import { ThesisService } from '../../../../core/services/thesis.service';
 import {
   StatusChangeDialogComponent,
 } from '../../components/status-change-dialog/status-change-dialog.component';
+import {
+  AssignSupervisorDialogComponent,
+} from '../../components/assign-supervisor-dialog/assign-supervisor-dialog.component';
 
 const NEXT_STATUSES: Record<ThesisStatus, ThesisStatus[]> = {
   draft: ['submitted'],
@@ -35,7 +38,6 @@ const NEXT_STATUSES: Record<ThesisStatus, ThesisStatus[]> = {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -88,6 +90,10 @@ export class ThesisDetailComponent implements OnInit {
       && this.authService.hasRole('student');
   }
 
+  get canAssignSupervisor(): boolean {
+    return this.authService.hasRole('administrator', 'head-of-department');
+  }
+
   get allowedNextStatuses(): ThesisStatus[] {
     const t = this.thesis();
     return t ? NEXT_STATUSES[t.status] : [];
@@ -138,6 +144,37 @@ export class ThesisDetailComponent implements OnInit {
         this.snackBar.open('Thesis submitted for review.', 'Close', { duration: 3000 });
         this.loadThesis(thesis.id);
       },
+    });
+  }
+
+  openAssignSupervisorDialog(): void {
+    const thesis = this.thesis();
+    if (!thesis) return;
+
+    const dialogRef = this.dialog.open(AssignSupervisorDialogComponent, {
+      data: {
+        departmentId: thesis.department.id,
+        currentSupervisorId: thesis.supervisor?.id ?? null,
+      },
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+
+      this.thesisService.assignSupervisor(thesis.id, result).subscribe({
+        next: () => {
+          this.snackBar.open('Supervisor assigned successfully.', 'Close', { duration: 3000 });
+          this.loadThesis(thesis.id);
+        },
+        error: (err) => {
+          this.snackBar.open(
+            err.error?.message ?? 'Unable to assign supervisor.',
+            'Close',
+            { duration: 4000 }
+          );
+        },
+      });
     });
   }
 

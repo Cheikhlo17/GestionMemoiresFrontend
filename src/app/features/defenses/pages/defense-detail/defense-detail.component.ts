@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../../core/services/auth.service';
+import { DefenseJuryEvaluation } from '../../../../core/models/defense-evaluation.model';
 import { DefenseSchedule } from '../../../../core/models/defense-schedule.model';
 import { DefenseScheduleService } from '../../../../core/services/defense-schedule.service';
 import {
@@ -46,21 +47,28 @@ export class DefenseDetailComponent implements OnInit {
   readonly authService = inject(AuthService);
 
   readonly schedule = signal<DefenseSchedule | null>(null);
+  readonly evaluations = signal<DefenseJuryEvaluation[]>([]);
   readonly isLoading = signal(false);
   readonly isDownloading = signal(false);
 
-  readonly resultForm = this.fb.nonNullable.group({
+  readonly evaluationForm = this.fb.group({
+    grade: [null as number | null],
+    verdict: [null as string | null, [Validators.required]],
+    remarks: [null as string | null],
+  });
+
+  readonly resultForm = this.fb.group({
     final_grade: [null as number | null],
     verdict: [null as string | null, [Validators.required]],
-    remarks: [''],
+    remarks: [null as string | null],
   });
 
   get canManage(): boolean {
     return this.authService.hasRole('administrator', 'head-of-department');
   }
 
-  get canRecordResult(): boolean {
-    return this.canManage || this.authService.hasRole('jury-member');
+  get isJuryMember(): boolean {
+    return this.authService.hasRole('jury-member');
   }
 
   ngOnInit(): void {
@@ -77,12 +85,34 @@ export class DefenseDetailComponent implements OnInit {
           this.resultForm.patchValue({
             final_grade: res.data.result.final_grade,
             verdict: res.data.result.verdict,
-            remarks: res.data.result.remarks ?? undefined,
+            remarks: res.data.result.remarks,
           });
         }
         this.isLoading.set(false);
+
+        if (this.canManage || this.isJuryMember) {
+          this.loadEvaluations(id);
+        }
       },
       error: () => this.isLoading.set(false),
+    });
+  }
+
+  private loadEvaluations(id: number): void {
+    this.defenseService.listEvaluations(id).subscribe({
+      next: (res) => {
+        this.evaluations.set(res.data);
+        const mine = res.data.find(
+          (e) => e.jury_member.full_name === this.authService.currentUser()?.full_name
+        );
+        if (mine) {
+          this.evaluationForm.patchValue({
+            grade: mine.grade,
+            verdict: mine.verdict,
+            remarks: mine.remarks,
+          });
+        }
+      },
     });
   }
 
@@ -91,10 +121,7 @@ export class DefenseDetailComponent implements OnInit {
     if (!schedule) return;
 
     const dialogRef = this.dialog.open(AssignJuryDialogComponent, {
-      data: {
-        departmentId: 0, // resolved server-side via jury pool; frontend allows all active jury
-        existingJury: schedule.jury_members,
-      },
+      data: { departmentId: 0, existingJury: schedule.jury_members },
       width: '480px',
     });
 
@@ -107,11 +134,9 @@ export class DefenseDetailComponent implements OnInit {
           this.loadSchedule(schedule.id);
         },
         error: (err) => {
-          this.snackBar.open(
-            err.error?.message ?? 'Unable to assign jury.',
-            'Close',
-            { duration: 4000 }
-          );
+          this.snackBar.open(err.error?.message ?? 'Unable to assign jury.', 'Close', {
+            duration: 4000,
+          });
         },
       });
     });
@@ -140,6 +165,31 @@ export class DefenseDetailComponent implements OnInit {
     });
   }
 
+  submitEvaluation(): void {
+    if (this.evaluationForm.invalid) {
+      this.evaluationForm.markAllAsTouched();
+      return;
+    }
+
+    const schedule = this.schedule();
+    if (!schedule) return;
+
+    const raw = this.evaluationForm.getRawValue();
+
+    this.defenseService
+      .submitEvaluation(schedule.id, {
+        grade: raw.grade,
+        verdict: raw.verdict as any,
+        remarks: raw.remarks || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Your evaluation has been recorded.', 'Close', { duration: 3000 });
+          this.loadEvaluations(schedule.id);
+        },
+      });
+  }
+
   submitResult(): void {
     if (this.resultForm.invalid) {
       this.resultForm.markAllAsTouched();
@@ -159,7 +209,7 @@ export class DefenseDetailComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.snackBar.open('Result recorded successfully.', 'Close', { duration: 3000 });
+          this.snackBar.open('Final result recorded successfully.', 'Close', { duration: 3000 });
           this.loadSchedule(schedule.id);
         },
       });
