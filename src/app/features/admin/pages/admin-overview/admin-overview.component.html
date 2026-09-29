@@ -1,0 +1,22 @@
+<div class="admin-page">
+  <h1>Administration</h1>
+
+  <nav mat-tab-nav-bar [tabPanel]="panel" class="admin-page__tabs">
+    @for (tab of tabs; track tab.route) {
+      
+      <a
+        mat-tab-link
+        [routerLink]="tab.route"
+        routerLinkActive
+        #rla="routerLinkActive"
+        [active]="rla.isActive"
+      >
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
+
+  <mat-tab-nav-panel #panel>
+    <router-outlet></router-outlet>
+  </mat-tab-nav-panel>
+</div>

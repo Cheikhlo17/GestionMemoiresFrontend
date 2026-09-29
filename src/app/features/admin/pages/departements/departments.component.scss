@@ -1,0 +1,48 @@
+.departments-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-card,
+.table-card {
+  padding: 16px;
+
+  h2 {
+    font-size: 15px;
+    margin: 0 0 12px;
+  }
+}
+
+.inline-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1 1 200px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+table {
+  width: 100%;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2e7d32;
+  margin-right: 6px;
+
+  &--inactive {
+    background: #9e9e9e;
+  }
+}

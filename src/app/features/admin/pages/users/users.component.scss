@@ -1,0 +1,32 @@
+// src/app/features/admin/pages/users/users.component.scss
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-card,
+.table-card {
+  padding: 16px;
+}
+
+.search-field {
+  width: 320px;
+}
+
+table {
+  width: 100%;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2e7d32;
+  margin-right: 6px;
+
+  &--inactive {
+    background: #9e9e9e;
+  }
+}

@@ -1,0 +1,35 @@
+.years-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-card,
+.table-card {
+  padding: 16px;
+
+  h2 {
+    font-size: 15px;
+    margin: 0 0 12px;
+  }
+}
+
+.inline-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1 1 180px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+table {
+  width: 100%;
+}
