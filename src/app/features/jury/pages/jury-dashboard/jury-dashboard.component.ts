@@ -7,11 +7,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DefenseSchedule } from '../../../../core/models/defense-schedule.model';
 import { DefenseScheduleService } from '../../../../core/services/defense-schedule.service';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 @Component({
   selector: 'app-jury-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatChipsModule, MatIconModule, MatTabsModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatChipsModule, MatIconModule, MatTabsModule, UiLabelPipe],
   templateUrl: './jury-dashboard.component.html',
   styleUrl: './jury-dashboard.component.scss',
 })

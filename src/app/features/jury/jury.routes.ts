@@ -7,6 +7,6 @@ export const JURY_ROUTES: Routes = [
       import('./pages/jury-dashboard/jury-dashboard.component').then(
         (m) => m.JuryDashboardComponent
       ),
-    title: 'My Defenses',
+    title: 'Mes soutenances',
   },
 ];

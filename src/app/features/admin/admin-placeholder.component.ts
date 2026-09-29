@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
     <div class="admin-page">
       <mat-card>
         <h2>Administration</h2>
-        <p>User, department, and program management modules will be built here in the next phase.</p>
+        <p>La gestion des utilisateurs, des départements et des formations sera disponible dans une prochaine version.</p>
       </mat-card>
     </div>
   `,

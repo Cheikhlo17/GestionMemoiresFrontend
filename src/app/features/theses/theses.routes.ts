@@ -7,7 +7,7 @@ export const THESES_ROUTES: Routes = [
       import('./pages/thesis-list/thesis-list.component').then(
         (m) => m.ThesisListComponent
       ),
-    title: 'Theses',
+    title: 'Mémoires',
   },
   {
     path: 'create',
@@ -15,7 +15,7 @@ export const THESES_ROUTES: Routes = [
       import('./pages/thesis-form/thesis-form.component').then(
         (m) => m.ThesisFormComponent
       ),
-    title: 'New Thesis',
+    title: 'Nouveau mémoire',
   },
   {
     path: ':id',
@@ -23,6 +23,6 @@ export const THESES_ROUTES: Routes = [
       import('./pages/thesis-detail/thesis-detail.component').then(
         (m) => m.ThesisDetailComponent
       ),
-    title: 'Thesis Detail',
+    title: 'Détail du mémoire',
   },
 ];

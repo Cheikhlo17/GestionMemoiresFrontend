@@ -11,5 +11,5 @@ import { LoadingOverlayComponent } from './shared/components/loading-overlay/loa
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'GestionMemoiresFrontend';
+  readonly title = 'SUMA';
 }

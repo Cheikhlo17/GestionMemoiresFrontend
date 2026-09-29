@@ -7,6 +7,6 @@ export const SUPERVISOR_ROUTES: Routes = [
       import('./pages/supervisor-dashboard/supervisor-dashboard.component').then(
         (m) => m.SupervisorDashboardComponent
       ),
-    title: 'My Students',
+    title: 'Mes étudiants',
   },
 ];

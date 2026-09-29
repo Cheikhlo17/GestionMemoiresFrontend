@@ -23,7 +23,7 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
           ),
-        title: 'Dashboard',
+        title: 'Tableau de bord',
       },
       {
         path: 'students',
@@ -71,7 +71,7 @@ export const routes: Routes = [
           import('./features/forbidden/forbidden.component').then(
             (m) => m.ForbiddenComponent
           ),
-        title: 'Forbidden',
+        title: 'Accès interdit',
       },
     ],
   },

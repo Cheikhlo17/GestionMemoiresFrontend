@@ -72,11 +72,9 @@ export class ResetPasswordComponent {
         this.isSubmitting.set(false);
         this.router.navigate(['/auth/login']);
       },
-      error: (err) => {
+      error: () => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err.error?.message ?? 'Unable to reset password. The link may have expired.'
-        );
+        this.errorMessage.set('Impossible de réinitialiser le mot de passe. Le lien a peut-être expiré.');
       },
     });
   }

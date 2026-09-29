@@ -7,6 +7,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../core/services/auth.service';
+import { UiLabelPipe } from '../../shared/pipes/ui-label.pipe';
 
 interface NavItem {
   label: string;
@@ -28,6 +29,7 @@ interface NavItem {
     MatListModule,
     MatIconModule,
     MatButtonModule,
+    UiLabelPipe,
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
@@ -38,12 +40,12 @@ export class MainLayoutComponent {
   readonly isSidenavOpen = signal(true);
 
   private readonly allNavItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: [] },
-    { label: 'Students', icon: 'school', route: '/students', roles: ['administrator', 'head-of-department'] },
-    { label: 'My Students', icon: 'groups', route: '/supervisor', roles: ['supervisor'] },
-    { label: 'My Defenses', icon: 'gavel', route: '/jury', roles: ['jury-member'] },
-    { label: 'Theses', icon: 'article', route: '/theses', roles: [] },
-    { label: 'Defenses', icon: 'event', route: '/defenses', roles: [] },
+    { label: 'Tableau de bord', icon: 'dashboard', route: '/dashboard', roles: [] },
+    { label: 'Étudiants', icon: 'school', route: '/students', roles: ['administrator', 'head-of-department'] },
+    { label: 'Mes étudiants', icon: 'groups', route: '/supervisor', roles: ['supervisor'] },
+    { label: 'Mes soutenances', icon: 'gavel', route: '/jury', roles: ['jury-member'] },
+    { label: 'Mémoires', icon: 'article', route: '/theses', roles: [] },
+    { label: 'Soutenances', icon: 'event', route: '/defenses', roles: [] },
     { label: 'Administration', icon: 'admin_panel_settings', route: '/admin', roles: ['administrator'] },
   ];
 

@@ -1,10 +1,10 @@
 <div class="calendar-page">
   <div class="calendar-page__header">
-    <h1>Defense Calendar</h1>
+    <h1>Calendrier des soutenances</h1>
     @if (canSchedule) {
       <a mat-flat-button color="primary" routerLink="/defenses/schedule">
         <mat-icon>add</mat-icon>
-        Schedule Defense
+        Planifier une soutenance
       </a>
     }
   </div>
@@ -12,14 +12,14 @@
   <mat-card class="calendar-page__controls">
     <div class="nav-controls">
       <button mat-icon-button (click)="previousWeek()"><mat-icon>chevron_left</mat-icon></button>
-      <button mat-button (click)="today()">Today</button>
+      <button mat-button (click)="today()">Aujourd’hui</button>
       <button mat-icon-button (click)="nextWeek()"><mat-icon>chevron_right</mat-icon></button>
     </div>
 
     <mat-form-field appearance="outline" class="room-filter">
-      <mat-label>Room</mat-label>
+      <mat-label>Salle</mat-label>
       <mat-select [(ngModel)]="selectedRoomId" (selectionChange)="onRoomChange()">
-        <mat-option [value]="null">All Rooms</mat-option>
+        <mat-option [value]="null">Toutes les salles</mat-option>
         @for (room of rooms(); track room.id) {
           <mat-option [value]="room.id">{{ room.name }}</mat-option>
         }
@@ -43,7 +43,7 @@
             <small>{{ defense.room.name }}</small>
           </a>
         } @empty {
-          <p class="no-defense">No defenses</p>
+          <p class="no-defense">Aucune soutenance</p>
         }
       </mat-card>
     }

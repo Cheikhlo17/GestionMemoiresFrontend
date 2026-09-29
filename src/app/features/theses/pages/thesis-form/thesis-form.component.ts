@@ -81,7 +81,7 @@ export class ThesisFormComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.isSubmitting.set(false);
-          this.snackBar.open('Thesis draft created.', 'Close', { duration: 3000 });
+          this.snackBar.open('Brouillon du mémoire créé.', 'Fermer', { duration: 3000 });
           this.router.navigate(['/theses', res.data.id]);
         },
         error: () => this.isSubmitting.set(false),

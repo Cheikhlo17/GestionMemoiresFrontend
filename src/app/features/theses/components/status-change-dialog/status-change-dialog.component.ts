@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ThesisStatus } from '../../../../core/models/thesis.model';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 export interface StatusChangeDialogData {
   allowedStatuses: ThesisStatus[];
@@ -27,6 +28,7 @@ export interface StatusChangeDialogData {
     MatSelectModule,
     MatInputModule,
     MatButtonModule,
+    UiLabelPipe,
   ],
   templateUrl: './status-change-dialog.component.html',
 })

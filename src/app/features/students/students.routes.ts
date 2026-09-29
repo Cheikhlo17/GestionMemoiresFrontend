@@ -7,7 +7,7 @@ export const STUDENTS_ROUTES: Routes = [
       import('./pages/student-list/student-list.component').then(
         (m) => m.StudentListComponent
       ),
-    title: 'Students',
+    title: 'Étudiants',
   },
   {
     path: 'create',
@@ -15,7 +15,7 @@ export const STUDENTS_ROUTES: Routes = [
       import('./pages/student-form/student-form.component').then(
         (m) => m.StudentFormComponent
       ),
-    title: 'New Student',
+    title: 'Nouvel étudiant',
   },
   {
     path: ':id/edit',
@@ -23,6 +23,6 @@ export const STUDENTS_ROUTES: Routes = [
       import('./pages/student-form/student-form.component').then(
         (m) => m.StudentFormComponent
       ),
-    title: 'Edit Student',
+    title: 'Modifier l’étudiant',
   },
 ];

@@ -1,24 +1,24 @@
 <div class="thesis-form-page">
   <mat-card>
-    <h1>New Thesis</h1>
+    <h1>Nouveau mémoire</h1>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="thesis-form">
       <mat-form-field appearance="outline">
-        <mat-label>Title</mat-label>
-        <input matInput formControlName="title"  placeholder="Title"/>
+        <mat-label>Titre</mat-label>
+        <input matInput formControlName="title" placeholder="Titre" />
         @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
-          <mat-error>Title is required.</mat-error>
+          <mat-error>Le titre est obligatoire.</mat-error>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Abstract</mat-label>
-        <textarea matInput rows="5" formControlName="abstract" placeholder="Abstract"></textarea>
+        <mat-label>Résumé</mat-label>
+        <textarea matInput rows="5" formControlName="abstract" placeholder="Résumé"></textarea>
       </mat-form-field>
 
       <div class="thesis-form__row">
         <mat-form-field appearance="outline">
-          <mat-label>Department</mat-label>
+          <mat-label>Département</mat-label>
           <mat-select formControlName="department_id">
             @for (dept of departments(); track dept.id) {
               <mat-option [value]="dept.id">{{ dept.name }}</mat-option>
@@ -27,7 +27,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Program</mat-label>
+          <mat-label>Formation</mat-label>
           <mat-select formControlName="program_id">
             @for (program of programs(); track program.id) {
               <mat-option [value]="program.id">{{ program.name }}</mat-option>
@@ -36,7 +36,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Academic Year</mat-label>
+          <mat-label>Année universitaire</mat-label>
           <mat-select formControlName="academic_year_id">
             @for (year of academicYears(); track year.id) {
               <mat-option [value]="year.id">{{ year.label }}</mat-option>
@@ -46,9 +46,9 @@
       </div>
 
       <div class="thesis-form__actions">
-        <a mat-button routerLink="/theses">Cancel</a>
+        <a mat-button routerLink="/theses">Annuler</a>
         <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
-          Create Draft
+          Créer le brouillon
         </button>
       </div>
     </form>

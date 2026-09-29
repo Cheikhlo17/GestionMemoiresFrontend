@@ -16,6 +16,9 @@ import { Program } from '../../../../core/models/program.model';
 import { StudentStatus } from '../../../../core/models/student.model';
 import { LookupService } from '../../../../core/services/lookup.service';
 import { StudentService } from '../../../../core/services/student.service';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
+import { MatDatepickerIntl } from '@angular/material/datepicker';
+import { createFrenchDatepickerIntl } from '../../../../shared/datepicker/french-datepicker-intl';
 
 @Component({
   selector: 'app-student-form',
@@ -31,9 +34,11 @@ import { StudentService } from '../../../../core/services/student.service';
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    UiLabelPipe,
   ],
   templateUrl: './student-form.component.html',
   styleUrl: './student-form.component.scss',
+  providers: [{ provide: MatDatepickerIntl, useFactory: createFrenchDatepickerIntl }],
 })
 export class StudentFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -129,8 +134,8 @@ export class StudentFormComponent implements OnInit {
       next: () => {
         this.isSubmitting.set(false);
         this.snackBar.open(
-          `Student ${this.isEditMode() ? 'updated' : 'created'} successfully.`,
-          'Close',
+          `Étudiant ${this.isEditMode() ? 'modifié' : 'créé'} avec succès.`,
+          'Fermer',
           { duration: 3000 }
         );
         this.router.navigate(['/students']);

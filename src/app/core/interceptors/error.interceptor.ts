@@ -12,23 +12,23 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      let message = 'An unexpected error occurred.';
-
-      if (error.error?.message) {
-        message = error.error.message;
-      }
+      let message = 'Une erreur inattendue est survenue.';
 
       if (error.status === 401) {
+        message = 'Votre session a expiré. Veuillez vous reconnecter.';
         tokenStorage.clear();
         router.navigate(['/auth/login']);
       } else if (error.status === 403) {
-        message = message || 'You are not authorized to perform this action.';
-      } else if (error.status === 422 && error.error?.errors) {
-        const firstError = Object.values(error.error.errors)[0] as string[];
-        message = firstError?.[0] ?? message;
+        message = 'Vous n’êtes pas autorisé à effectuer cette action.';
+      } else if (error.status === 404) {
+        message = 'La ressource demandée est introuvable.';
+      } else if (error.status === 422) {
+        message = 'Les données saisies sont invalides. Vérifiez les champs du formulaire.';
+      } else if (error.status >= 500) {
+        message = 'Une erreur est survenue sur le serveur. Veuillez réessayer.';
       }
 
-      snackBar.open(message, 'Close', { duration: 5000 });
+      snackBar.open(message, 'Fermer', { duration: 5000 });
 
       return throwError(() => error);
     })

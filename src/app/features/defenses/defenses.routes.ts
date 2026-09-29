@@ -7,7 +7,7 @@ export const DEFENSES_ROUTES: Routes = [
       import('./pages/defense-calendar/defense-calendar.component').then(
         (m) => m.DefenseCalendarComponent
       ),
-    title: 'Defense Calendar',
+    title: 'Calendrier des soutenances',
   },
   {
     path: 'schedule',
@@ -15,7 +15,7 @@ export const DEFENSES_ROUTES: Routes = [
       import('./pages/defense-form/defense-form.component').then(
         (m) => m.DefenseFormComponent
       ),
-    title: 'Schedule Defense',
+    title: 'Planifier une soutenance',
   },
   {
     path: ':id',
@@ -23,6 +23,6 @@ export const DEFENSES_ROUTES: Routes = [
       import('./pages/defense-detail/defense-detail.component').then(
         (m) => m.DefenseDetailComponent
       ),
-    title: 'Defense Detail',
+    title: 'Détail de la soutenance',
   },
 ];

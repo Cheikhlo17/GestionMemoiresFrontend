@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDatepickerIntl } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -15,6 +16,7 @@ import { Thesis } from '../../../../core/models/thesis.model';
 import { DefenseScheduleService } from '../../../../core/services/defense-schedule.service';
 import { LookupService } from '../../../../core/services/lookup.service';
 import { ThesisService } from '../../../../core/services/thesis.service';
+import { createFrenchDatepickerIntl } from '../../../../shared/datepicker/french-datepicker-intl';
 
 @Component({
   selector: 'app-defense-form',
@@ -33,6 +35,7 @@ import { ThesisService } from '../../../../core/services/thesis.service';
   ],
   templateUrl: './defense-form.component.html',
   styleUrl: './defense-form.component.scss',
+  providers: [{ provide: MatDatepickerIntl, useFactory: createFrenchDatepickerIntl }],
 })
 export class DefenseFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -86,13 +89,13 @@ export class DefenseFormComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.isSubmitting.set(false);
-          this.snackBar.open('Defense scheduled successfully.', 'Close', { duration: 3000 });
+          this.snackBar.open('Soutenance planifiée avec succès.', 'Fermer', { duration: 3000 });
           this.router.navigate(['/defenses', res.data.id]);
         },
-        error: (err) => {
+        error: () => {
           this.isSubmitting.set(false);
           this.errorMessage.set(
-            err.error?.message ?? 'Unable to schedule the defense. Please check for conflicts.'
+            'Impossible de planifier la soutenance. Vérifiez les éventuels conflits.'
           );
         },
       });

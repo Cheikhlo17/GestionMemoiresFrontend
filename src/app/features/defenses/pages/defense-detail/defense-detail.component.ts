@@ -19,6 +19,7 @@ import {
   AssignJuryDialogComponent,
 } from '../../components/assign-jury-dialog/assign-jury-dialog.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 @Component({
   selector: 'app-defense-detail',
@@ -34,6 +35,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
+    UiLabelPipe,
   ],
   templateUrl: './defense-detail.component.html',
   styleUrl: './defense-detail.component.scss',
@@ -130,11 +132,11 @@ export class DefenseDetailComponent implements OnInit {
 
       this.defenseService.assignJury(schedule.id, result).subscribe({
         next: () => {
-          this.snackBar.open('Jury assigned successfully.', 'Close', { duration: 3000 });
+          this.snackBar.open('Jury attribué avec succès.', 'Fermer', { duration: 3000 });
           this.loadSchedule(schedule.id);
         },
-        error: (err) => {
-          this.snackBar.open(err.error?.message ?? 'Unable to assign jury.', 'Close', {
+        error: () => {
+          this.snackBar.open('Impossible d’attribuer le jury.', 'Fermer', {
             duration: 4000,
           });
         },
@@ -148,8 +150,8 @@ export class DefenseDetailComponent implements OnInit {
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Cancel Defense',
-        message: 'Are you sure you want to cancel this defense? Participants will be notified.',
+        title: 'Annuler la soutenance',
+        message: 'Voulez-vous vraiment annuler cette soutenance ? Les participants en seront informés.',
       },
     });
 
@@ -158,7 +160,7 @@ export class DefenseDetailComponent implements OnInit {
 
       this.defenseService.cancel(schedule.id, 'Cancelled by administration').subscribe({
         next: () => {
-          this.snackBar.open('Defense cancelled.', 'Close', { duration: 3000 });
+          this.snackBar.open('Soutenance annulée.', 'Fermer', { duration: 3000 });
           this.loadSchedule(schedule.id);
         },
       });
@@ -184,7 +186,7 @@ export class DefenseDetailComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.snackBar.open('Your evaluation has been recorded.', 'Close', { duration: 3000 });
+          this.snackBar.open('Votre évaluation a été enregistrée.', 'Fermer', { duration: 3000 });
           this.loadEvaluations(schedule.id);
         },
       });
@@ -209,7 +211,7 @@ export class DefenseDetailComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.snackBar.open('Final result recorded successfully.', 'Close', { duration: 3000 });
+          this.snackBar.open('Décision finale enregistrée avec succès.', 'Fermer', { duration: 3000 });
           this.loadSchedule(schedule.id);
         },
       });

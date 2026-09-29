@@ -10,6 +10,7 @@ import { Supervisor } from '../../../../core/models/supervisor.model';
 import { Thesis } from '../../../../core/models/thesis.model';
 import { SupervisorService } from '../../../../core/services/supervisor.service';
 import { ThesisService } from '../../../../core/services/thesis.service';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 @Component({
   selector: 'app-supervisor-dashboard',
@@ -22,6 +23,7 @@ import { ThesisService } from '../../../../core/services/thesis.service';
     MatChipsModule,
     MatIconModule,
     MatTooltipModule,
+    UiLabelPipe,
   ],
   templateUrl: './supervisor-dashboard.component.html',
   styleUrl: './supervisor-dashboard.component.scss',
@@ -43,7 +45,7 @@ export class SupervisorDashboardComponent implements OnInit {
 
   readonly capacityLabel = computed(() => {
     const s = this.supervisor();
-    return s ? `${this.theses().length} / ${s.max_students} students` : '';
+    return s ? `${this.theses().length} / ${s.max_students} étudiants` : '';
   });
 
   ngOnInit(): void {
@@ -57,7 +59,7 @@ export class SupervisorDashboardComponent implements OnInit {
       error: () => {
         this.isLoading.set(false);
         this.errorMessage.set(
-          'No supervisor profile is linked to your account yet. Contact an administrator.'
+          'Aucun profil d’encadrant n’est associé à votre compte. Contactez un administrateur.'
         );
       },
     });

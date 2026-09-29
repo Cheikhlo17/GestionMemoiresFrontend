@@ -21,6 +21,7 @@ import { Student, StudentStatus } from '../../../../core/models/student.model';
 import { LookupService } from '../../../../core/services/lookup.service';
 import { StudentService } from '../../../../core/services/student.service';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 @Component({
   selector: 'app-student-list',
@@ -40,6 +41,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
     MatSortModule,
     MatTooltipModule,
     MatDialogModule,
+    UiLabelPipe,
   ],
   templateUrl: './student-list.component.html',
   styleUrl: './student-list.component.scss',
@@ -140,8 +142,8 @@ export class StudentListComponent implements OnInit {
   deleteStudent(student: Student): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Delete Student',
-        message: `Are you sure you want to delete ${student.full_name}? This action cannot be undone.`,
+        title: 'Supprimer l’étudiant',
+        message: `Voulez-vous vraiment supprimer ${student.full_name} ? Cette action est irréversible.`,
       },
     });
 
@@ -150,7 +152,7 @@ export class StudentListComponent implements OnInit {
 
       this.studentService.delete(student.id).subscribe({
         next: () => {
-          this.snackBar.open('Student deleted successfully.', 'Close', { duration: 3000 });
+          this.snackBar.open('Étudiant supprimé avec succès.', 'Fermer', { duration: 3000 });
           this.loadStudents();
         },
       });

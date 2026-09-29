@@ -73,11 +73,9 @@ export class RegisterComponent {
         this.isSubmitting.set(false);
         this.router.navigate(['/dashboard']);
       },
-      error: (err) => {
+      error: () => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err.error?.message ?? 'Registration failed. Please try again.'
-        );
+        this.errorMessage.set('L’inscription a échoué. Veuillez réessayer.');
       },
     });
   }

@@ -50,13 +50,11 @@ export class ForgotPasswordComponent {
     this.authService.forgotPassword(this.form.getRawValue()).subscribe({
       next: (res) => {
         this.isSubmitting.set(false);
-        this.successMessage.set(res.message);
+        this.successMessage.set('Si cette adresse est associée à un compte, un lien de réinitialisation a été envoyé.');
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err.error?.message ?? 'Unable to send reset link.'
-        );
+        this.errorMessage.set('Impossible d’envoyer le lien de réinitialisation. Veuillez réessayer.');
       },
     });
   }

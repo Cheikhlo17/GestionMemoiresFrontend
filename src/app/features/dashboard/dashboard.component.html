@@ -1,8 +1,8 @@
 <!-- src/app/features/dashboard/dashboard.component.html -->
 <div class="dashboard-page">
   @if (authService.currentUser(); as user) {
-    <h1>Welcome back, {{ user.first_name }}</h1>
-    <p class="dashboard-page__role">{{ user.role.name }}</p>
+    <h1>Bonjour, {{ user.first_name }}</h1>
+    <p class="dashboard-page__role">{{ user.role.name | uiLabel }}</p>
   }
 
   <div class="dashboard-page__grid">
@@ -11,7 +11,7 @@
         <mat-icon class="action-card__icon">{{ action.icon }}</mat-icon>
         <h3>{{ action.label }}</h3>
         <p>{{ action.description }}</p>
-        <a mat-button color="primary" [routerLink]="action.route">Go</a>
+        <a mat-button color="primary" [routerLink]="action.route">Ouvrir</a>
       </mat-card>
     }
   </div>

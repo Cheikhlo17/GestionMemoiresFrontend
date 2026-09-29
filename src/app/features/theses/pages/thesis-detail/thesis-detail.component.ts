@@ -21,6 +21,7 @@ import {
 import {
   AssignSupervisorDialogComponent,
 } from '../../components/assign-supervisor-dialog/assign-supervisor-dialog.component';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 const NEXT_STATUSES: Record<ThesisStatus, ThesisStatus[]> = {
   draft: ['submitted'],
@@ -47,6 +48,7 @@ const NEXT_STATUSES: Record<ThesisStatus, ThesisStatus[]> = {
     MatFormFieldModule,
     MatInputModule,
     MatDialogModule,
+    UiLabelPipe,
   ],
   templateUrl: './thesis-detail.component.html',
   styleUrl: './thesis-detail.component.scss',
@@ -114,7 +116,7 @@ export class ThesisDetailComponent implements OnInit {
       next: () => {
         this.isUploading.set(false);
         this.selectedFile.set(null);
-        this.snackBar.open('File uploaded successfully.', 'Close', { duration: 3000 });
+        this.snackBar.open('Fichier déposé avec succès.', 'Fermer', { duration: 3000 });
         this.loadThesis(thesis.id);
       },
       error: () => this.isUploading.set(false),
@@ -141,7 +143,7 @@ export class ThesisDetailComponent implements OnInit {
 
     this.thesisService.submit(thesis.id).subscribe({
       next: () => {
-        this.snackBar.open('Thesis submitted for review.', 'Close', { duration: 3000 });
+        this.snackBar.open('Mémoire soumis pour examen.', 'Fermer', { duration: 3000 });
         this.loadThesis(thesis.id);
       },
     });
@@ -164,13 +166,13 @@ export class ThesisDetailComponent implements OnInit {
 
       this.thesisService.assignSupervisor(thesis.id, result).subscribe({
         next: () => {
-          this.snackBar.open('Supervisor assigned successfully.', 'Close', { duration: 3000 });
+          this.snackBar.open('Encadrant attribué avec succès.', 'Fermer', { duration: 3000 });
           this.loadThesis(thesis.id);
         },
-        error: (err) => {
+        error: () => {
           this.snackBar.open(
-            err.error?.message ?? 'Unable to assign supervisor.',
-            'Close',
+            'Impossible d’attribuer l’encadrant.',
+            'Fermer',
             { duration: 4000 }
           );
         },
@@ -191,7 +193,7 @@ export class ThesisDetailComponent implements OnInit {
 
       this.thesisService.changeStatus(thesis.id, result).subscribe({
         next: () => {
-          this.snackBar.open('Status updated successfully.', 'Close', { duration: 3000 });
+          this.snackBar.open('Statut mis à jour avec succès.', 'Fermer', { duration: 3000 });
           this.loadThesis(thesis.id);
         },
       });

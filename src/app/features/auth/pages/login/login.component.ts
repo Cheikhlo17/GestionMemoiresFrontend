@@ -59,11 +59,9 @@ export class LoginComponent {
         this.isSubmitting.set(false);
         this.router.navigate(['/dashboard']);
       },
-      error: (err) => {
+      error: () => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err.error?.message ?? 'Unable to log in. Please try again.'
-        );
+        this.errorMessage.set('Échec de la connexion. Vérifiez vos identifiants et réessayez.');
       },
     });
   }

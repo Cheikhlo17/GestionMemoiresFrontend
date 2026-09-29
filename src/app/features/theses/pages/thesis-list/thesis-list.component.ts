@@ -16,6 +16,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ThesisService } from '../../../../core/services/thesis.service';
 import { Thesis, ThesisStatus } from '../../../../core/models/thesis.model';
+import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 @Component({
   selector: 'app-thesis-list',
@@ -34,6 +35,7 @@ import { Thesis, ThesisStatus } from '../../../../core/models/thesis.model';
     MatChipsModule,
     MatTooltipModule,
     MatPaginatorModule,
+    UiLabelPipe,
   ],
   templateUrl: './thesis-list.component.html',
   styleUrl: './thesis-list.component.scss',

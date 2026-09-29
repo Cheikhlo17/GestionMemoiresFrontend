@@ -6,9 +6,9 @@
     class="layout__sidenav"
   >
     <div class="layout__brand">
-      <mat-icon>school</mat-icon>
-      <span>Thesis Manager</span>
-    </div>
+  <mat-icon>school</mat-icon>
+  <span>SUMA</span>
+</div>
 
     <mat-nav-list>
       @for (item of navItems; track item.route) {
@@ -31,9 +31,9 @@
       </button>
       <span class="layout__spacer"></span>
       @if (authService.currentUser(); as user) {
-        <span class="layout__user">{{ user.full_name }} · {{ user.role.name }}</span>
+        <span class="layout__user">{{ user.full_name }} · {{ user.role.name | uiLabel }}</span>
       }
-      <button mat-icon-button (click)="logout()" matTooltip="Logout">
+      <button mat-icon-button (click)="logout()" matTooltip="Se déconnecter">
         <mat-icon>logout</mat-icon>
       </button>
     </mat-toolbar>
