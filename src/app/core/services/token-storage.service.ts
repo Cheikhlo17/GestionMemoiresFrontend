@@ -6,8 +6,8 @@ const USER_KEY = 'thesis_auth_user';
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
-  private readonly _token = signal<string | null>(this.readToken());
   private readonly _user = signal<User | null>(this.readUser());
+  private readonly _token = signal<string | null>(this.readToken());
 
   readonly token = this._token.asReadonly();
   readonly user = this._user.asReadonly();
@@ -18,7 +18,49 @@ export class TokenStorageService {
 
   private readUser(): User | null {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? (JSON.parse(raw) as User) : null;
+    if (!raw) return null;
+
+    let user: unknown;
+    try {
+      user = JSON.parse(raw);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      this.clearInvalidSession();
+      return null;
+    }
+
+    if (!this.isStoredUser(user)) {
+      this.clearInvalidSession();
+      return null;
+    }
+
+    return user;
+  }
+
+  private isStoredUser(value: unknown): value is User {
+    if (!value || typeof value !== 'object') return false;
+
+    const user = value as Record<string, unknown>;
+    const role = user['role'];
+    if (!role || typeof role !== 'object') return false;
+
+    const storedRole = role as Record<string, unknown>;
+    return (
+      typeof user['id'] === 'number' &&
+      typeof user['first_name'] === 'string' &&
+      typeof user['last_name'] === 'string' &&
+      typeof user['full_name'] === 'string' &&
+      typeof user['email'] === 'string' &&
+      typeof storedRole['id'] === 'number' &&
+      typeof storedRole['name'] === 'string' &&
+      typeof storedRole['slug'] === 'string'
+    );
+  }
+
+  private clearInvalidSession(): void {
+    console.warn('Stored SUMA user data is invalid; clearing the cached session.');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }
 
   setSession(token: string, user: User): void {

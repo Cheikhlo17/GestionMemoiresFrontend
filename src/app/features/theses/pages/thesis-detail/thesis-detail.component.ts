@@ -12,15 +12,23 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+
 import { AuthService } from '../../../../core/services/auth.service';
 import { Thesis, ThesisStatus } from '../../../../core/models/thesis.model';
 import { ThesisService } from '../../../../core/services/thesis.service';
+
 import {
   StatusChangeDialogComponent,
 } from '../../components/status-change-dialog/status-change-dialog.component';
+
 import {
   AssignSupervisorDialogComponent,
 } from '../../components/assign-supervisor-dialog/assign-supervisor-dialog.component';
+
+import {
+  ArchiveDialogComponent,
+} from '../../components/archive-dialog/archive-dialog.component';
+
 import { UiLabelPipe } from '../../../../shared/pipes/ui-label.pipe';
 
 const NEXT_STATUSES: Record<ThesisStatus, ThesisStatus[]> = {
@@ -28,10 +36,18 @@ const NEXT_STATUSES: Record<ThesisStatus, ThesisStatus[]> = {
   submitted: ['under_review'],
   under_review: ['revision_required', 'approved', 'rejected'],
   revision_required: ['submitted'],
-  approved: ['archived'],
+  approved: [],
   rejected: [],
   archived: [],
 };
+
+export function isThesisOwner(
+  userId: number | undefined,
+  studentId: number | undefined,
+  isStudent: boolean
+): boolean {
+  return isStudent && userId !== undefined && userId === studentId;
+}
 
 @Component({
   selector: 'app-thesis-detail',
@@ -59,6 +75,7 @@ export class ThesisDetailComponent implements OnInit {
   private readonly thesisService = inject(ThesisService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+
   readonly authService = inject(AuthService);
 
   readonly thesis = signal<Thesis | null>(null);
@@ -78,6 +95,7 @@ export class ThesisDetailComponent implements OnInit {
 
   private loadThesis(id: number): void {
     this.isLoading.set(true);
+
     this.thesisService.get(id).subscribe({
       next: (res) => {
         this.thesis.set(res.data);
@@ -88,12 +106,18 @@ export class ThesisDetailComponent implements OnInit {
   }
 
   get isOwner(): boolean {
-    return this.authService.currentUser()?.full_name === this.thesis()?.student.full_name
-      && this.authService.hasRole('student');
+    return isThesisOwner(
+      this.authService.currentUser()?.id,
+      this.thesis()?.student.id,
+      this.authService.hasRole('student')
+    );
   }
 
   get canAssignSupervisor(): boolean {
-    return this.authService.hasRole('administrator', 'head-of-department');
+    return this.authService.hasRole(
+      'administrator',
+      'head-of-department'
+    );
   }
 
   get allowedNextStatuses(): ThesisStatus[] {
@@ -109,14 +133,22 @@ export class ThesisDetailComponent implements OnInit {
   uploadFile(): void {
     const file = this.selectedFile();
     const thesis = this.thesis();
+
     if (!file || !thesis) return;
 
     this.isUploading.set(true);
+
     this.thesisService.uploadVersion(thesis.id, file).subscribe({
       next: () => {
         this.isUploading.set(false);
         this.selectedFile.set(null);
-        this.snackBar.open('Fichier déposé avec succès.', 'Fermer', { duration: 3000 });
+
+        this.snackBar.open(
+          'Fichier déposé avec succès.',
+          'Fermer',
+          { duration: 3000 }
+        );
+
         this.loadThesis(thesis.id);
       },
       error: () => this.isUploading.set(false),
@@ -125,25 +157,36 @@ export class ThesisDetailComponent implements OnInit {
 
   downloadVersion(versionId: number, fileName: string): void {
     const thesis = this.thesis();
+
     if (!thesis) return;
 
-    this.thesisService.downloadVersion(thesis.id, versionId).subscribe((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    });
+    this.thesisService
+      .downloadVersion(thesis.id, versionId)
+      .subscribe((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+
+        a.href = url;
+        a.download = fileName;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+      });
   }
 
   submitThesis(): void {
     const thesis = this.thesis();
+
     if (!thesis) return;
 
     this.thesisService.submit(thesis.id).subscribe({
       next: () => {
-        this.snackBar.open('Mémoire soumis pour examen.', 'Fermer', { duration: 3000 });
+        this.snackBar.open(
+          'Mémoire soumis pour examen.',
+          'Fermer',
+          { duration: 3000 }
+        );
+
         this.loadThesis(thesis.id);
       },
     });
@@ -151,52 +194,104 @@ export class ThesisDetailComponent implements OnInit {
 
   openAssignSupervisorDialog(): void {
     const thesis = this.thesis();
+
     if (!thesis) return;
 
-    const dialogRef = this.dialog.open(AssignSupervisorDialogComponent, {
-      data: {
-        departmentId: thesis.department.id,
-        currentSupervisorId: thesis.supervisor?.id ?? null,
-      },
-      width: '420px',
-    });
+    const dialogRef = this.dialog.open(
+      AssignSupervisorDialogComponent,
+      {
+        data: {
+          departmentId: thesis.department.id,
+          currentSupervisorId: thesis.supervisor?.id ?? null,
+        },
+        width: '420px',
+      }
+    );
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
 
-      this.thesisService.assignSupervisor(thesis.id, result).subscribe({
-        next: () => {
-          this.snackBar.open('Encadrant attribué avec succès.', 'Fermer', { duration: 3000 });
-          this.loadThesis(thesis.id);
-        },
-        error: () => {
-          this.snackBar.open(
-            'Impossible d’attribuer l’encadrant.',
-            'Fermer',
-            { duration: 4000 }
-          );
-        },
-      });
+      this.thesisService
+        .assignSupervisor(thesis.id, result)
+        .subscribe({
+          next: () => {
+            this.snackBar.open(
+              'Encadrant attribué avec succès.',
+              'Fermer',
+              { duration: 3000 }
+            );
+
+            this.loadThesis(thesis.id);
+          },
+          error: () => {
+            this.snackBar.open(
+              'Impossible d’attribuer l’encadrant.',
+              'Fermer',
+              { duration: 4000 }
+            );
+          },
+        });
     });
   }
 
   openStatusDialog(): void {
     const thesis = this.thesis();
+
     if (!thesis) return;
 
-    const dialogRef = this.dialog.open(StatusChangeDialogComponent, {
-      data: { allowedStatuses: this.allowedNextStatuses },
-    });
+    const dialogRef = this.dialog.open(
+      StatusChangeDialogComponent,
+      {
+        data: {
+          allowedStatuses: this.allowedNextStatuses,
+        },
+      }
+    );
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
 
-      this.thesisService.changeStatus(thesis.id, result).subscribe({
-        next: () => {
-          this.snackBar.open('Statut mis à jour avec succès.', 'Fermer', { duration: 3000 });
-          this.loadThesis(thesis.id);
+      this.thesisService
+        .changeStatus(thesis.id, result)
+        .subscribe({
+          next: () => {
+            this.snackBar.open(
+              'Statut mis à jour avec succès.',
+              'Fermer',
+              { duration: 3000 }
+            );
+
+            this.loadThesis(thesis.id);
+          },
+        });
+    });
+  }
+
+  openArchiveDialog(): void {
+    const thesis = this.thesis();
+
+    if (!thesis) return;
+
+    const dialogRef = this.dialog.open(
+      ArchiveDialogComponent,
+      {
+        data: {
+          thesisId: thesis.id,
         },
-      });
+        width: '460px',
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+
+      this.snackBar.open(
+        'Mémoire archivé avec succès.',
+        'Fermer',
+        { duration: 3000 }
+      );
+
+      this.loadThesis(thesis.id);
     });
   }
 
@@ -207,11 +302,15 @@ export class ThesisDetailComponent implements OnInit {
     }
 
     const thesis = this.thesis();
+
     if (!thesis) return;
 
     this.isCommenting.set(true);
+
     this.thesisService
-      .addComment(thesis.id, { content: this.commentForm.getRawValue().content })
+      .addComment(thesis.id, {
+        content: this.commentForm.getRawValue().content,
+      })
       .subscribe({
         next: () => {
           this.isCommenting.set(false);

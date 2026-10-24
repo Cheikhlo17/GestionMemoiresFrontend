@@ -14,16 +14,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'GestionMemoiresFrontend' title`, () => {
+  it('should have the SUMA title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('GestionMemoiresFrontend');
+    expect(app.title).toEqual('SUMA');
   });
 
-  it('should render title', () => {
+  it('should render the shared loading overlay', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, GestionMemoiresFrontend');
+    expect(compiled.querySelector('app-loading-overlay')).not.toBeNull();
   });
 });

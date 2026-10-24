@@ -1,0 +1,19 @@
+<mat-toolbar color="primary" class="public-toolbar">
+  <a routerLink="/archives" class="public-toolbar__brand">
+    <mat-icon>local_library</mat-icon>
+    <span>SUMA — Archives</span>
+  </a>
+  <span class="public-toolbar__spacer"></span>
+  @if (authService.isAuthenticated()) {
+    <a mat-button routerLink="/dashboard">
+      <mat-icon>dashboard</mat-icon>
+      Mon espace
+    </a>
+  } @else {
+    <a mat-stroked-button routerLink="/auth/login">Connexion</a>
+  }
+</mat-toolbar>
+
+<div class="public-content">
+  <router-outlet></router-outlet>
+</div>

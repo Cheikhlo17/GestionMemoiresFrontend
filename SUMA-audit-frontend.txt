@@ -1,0 +1,461 @@
+RAPPORT D’AUDIT FRONTEND — SUMA
+Date de l’analyse : 20 octobre 2026
+
+Périmètre : analyse en lecture seule du frontend Angular présent dans le worktree.
+
+============================================================
+A. RÉSUMÉ EXÉCUTIF
+============================================================
+
+Le frontend est une application Angular 17 standalone, structurée par domaines métier et utilisant Angular Material, les formulaires réactifs, des signaux Angular et des appels HTTP centralisés dans des services. Les routes sont en grande partie chargées à la demande.
+
+Les domaines principaux sont présents dans le code : authentification, administration, étudiants, mémoires, encadrement, soutenances, jury et archives publiques. Plusieurs services appellent explicitement une API Laravel présumée. Cela démontre une intégration prévue dans le code, mais pas que l’API existe, accepte ces contrats ou fonctionne en production.
+
+Principaux constats :
+- Le cycle des mémoires — brouillon, soumission, examen, corrections, approbation ou rejet — est partiellement implémenté. Le dépôt de versions et les commentaires sont reliés à des appels API.
+- La planification des soutenances, l’affectation des jurys et la saisie des évaluations disposent d’écrans et d’appels API, mais plusieurs contrôles métier et validations restent à confirmer ou incomplets côté interface.
+- Les archives publiques et leur administration figurent dans le worktree actuel, mais plusieurs fichiers correspondants sont non suivis ou modifiés. Elles ne doivent donc pas être interprétées comme un état nécessairement déjà intégré à la branche.
+- L’authentification propose connexion, inscription et récupération du mot de passe. Il n’y a pas de page de profil, même si le service expose une méthode de changement de mot de passe.
+- Les tableaux de bord sont surtout des raccourcis et vues de suivi : aucune statistique agrégée ni graphique métier n’a été identifié.
+- Les rôles et permissions visibles dans l’interface reposent sur des guards et des conditions Angular. Ils ne remplacent pas les contrôles d’autorisation du backend Laravel.
+- Un seul fichier de test est recensé, et ses attentes de titre et de contenu semblent incompatibles avec l’application actuelle. Les tests n’ont pas été exécutés.
+
+============================================================
+B. ARCHITECTURE DU FRONTEND
+============================================================
+
+Organisation :
+- src/app/core : guards, interceptors, interfaces, modèles et services.
+- src/app/features : pages et composants des domaines métier.
+- src/app/layout : layouts authentifié et public.
+- src/app/shared : dialogues, validation, pipe d’étiquettes et personnalisation du datepicker.
+- src/environments : configuration d’environnement.
+
+Technologies principales : Angular 17, Angular Material/CDK, RxJS et TypeScript 5.4. Les composants sont autonomes (standalone) et les pages sont généralement importées avec loadComponent ou loadChildren. La configuration est centralisée dans src/app/app.config.ts.
+
+Navigation et accès :
+- Routes globales : src/app/app.routes.ts.
+- Routes par domaines : src/app/features/admin/admin.routes.ts, students/students.routes.ts, theses/theses.routes.ts, defenses/defenses.routes.ts, auth/auth.routes.ts et archives/archives.routes.ts.
+- Layout authentifié : src/app/layout/main-layout/main-layout.component.ts.
+- Layout public : src/app/layout/public-layout/public-layout.component.ts, utilisé par les routes /archives.
+- Guards : src/app/core/guards/auth.guard.ts, guest.guard.ts et role.guard.ts.
+
+Les pages /theses et /defenses sont accessibles à tout utilisateur authentifié selon la configuration des routes; les restrictions de certaines actions sont ensuite appliquées dans les composants.
+
+API, sessions et états transverses :
+- Les services Angular emploient HttpClient et construisent leurs URL à partir de environment.apiUrl.
+- La configuration trouvée dans src/environments/environment.ts pointe vers http://localhost:8000/api. Aucune configuration d’URL de production ou règle de remplacement d’environnement n’a été identifiée dans angular.json.
+- Le jeton et l’utilisateur sont conservés dans localStorage par src/app/core/services/token-storage.service.ts.
+- Les intercepteurs gèrent l’ajout d’authentification, l’indicateur de chargement et les erreurs HTTP dans src/app/core/interceptors/auth.interceptor.ts, loading.interceptor.ts et error.interceptor.ts.
+- Le chargement global est affiché par src/app/shared/components/loading-overlay/loading-overlay.component.ts. Les confirmations et notifications s’appuient notamment sur Angular Material.
+
+============================================================
+C. INVENTAIRE EXHAUSTIF DES FONCTIONNALITÉS
+============================================================
+
+Note de lecture : « reliée à une API » signifie que le code contient un appel HTTP vers un chemin identifiable. Cela ne constitue pas une vérification de l’existence ou du bon fonctionnement de cette route côté Laravel.
+
+1. Authentification et session
+État : implémentée et reliée à une API.
+Rôles : invités; tous les rôles après connexion.
+Fichiers : src/app/features/auth/pages/login/login.component.ts; src/app/core/services/auth.service.ts; src/app/core/services/token-storage.service.ts.
+API : POST /auth/login, GET /auth/me, POST /auth/logout.
+Actions et données : connexion, récupération du profil connecté, fermeture de session; jeton et utilisateur en localStorage.
+Validations : adresse e-mail valide et champs requis à la connexion.
+Limites : aucun renouvellement de jeton identifié; réponse et routes backend non vérifiées.
+
+2. Inscription
+État : implémentée et reliée à une API.
+Rôles : invités.
+Fichiers : src/app/features/auth/pages/register/register.component.ts; src/app/core/interfaces/auth.interface.ts.
+API : POST /auth/register.
+Actions et données : saisie des nom, prénom, e-mail, téléphone facultatif et mot de passe.
+Validations : champs requis, format e-mail, mot de passe fort (8 caractères minimum, majuscule, minuscule, chiffre et symbole), confirmation.
+Limites : aucun choix de rôle dans l’interface; le rôle final dépend du backend.
+
+3. Mot de passe oublié et réinitialisation
+État : implémentée et reliée à une API.
+Rôles : invités.
+Fichiers : src/app/features/auth/pages/forgot-password/forgot-password.component.ts; src/app/features/auth/pages/reset-password/reset-password.component.ts.
+API : POST /auth/forgot-password, POST /auth/reset-password.
+Actions et données : demande de lien, puis saisie du token, de l’adresse et du nouveau mot de passe.
+Validations : e-mail, champs requis, mot de passe fort et confirmation.
+Limites : la délivrance, la durée de validité et l’expiration du lien ne sont pas vérifiées.
+
+4. Profil et changement du mot de passe
+État : partielle.
+Rôles : utilisateur authentifié.
+Fichiers : src/app/core/services/auth.service.ts; src/app/core/interfaces/auth.interface.ts.
+API : méthode prévue POST /auth/change-password.
+Actions et données : la méthode du service existe; aucune page de profil ou formulaire correspondant n’a été repéré.
+Validations : aucun formulaire visible à auditer.
+Limites : fonctionnalité non accessible dans l’interface trouvée.
+
+5. Utilisateurs et activation
+État : partielle, reliée à une API.
+Rôles : administrateur.
+Fichiers : src/app/features/admin/pages/users/users.component.ts et .html; src/app/core/services/admin.service.ts.
+API : GET /admin/users; POST /admin/users/{id}/toggle-active.
+Actions et données : liste paginée, recherche et activation/désactivation d’un compte.
+Validations : aucune validation métier particulière dans la page.
+Limites : pas de modification de rôle, création, suppression ou filtre visible par rôle/statut.
+
+6. Rôles et permissions
+État : partielle.
+Rôles : administrateur et rôles identifiés dans le code.
+Fichiers : src/app/core/models/role.model.ts; src/app/core/guards/role.guard.ts; src/app/layout/main-layout/main-layout.component.ts; src/app/app.routes.ts.
+API : aucune route de gestion des rôles identifiée.
+Actions et données : affichage du menu selon les slugs; protection de certaines routes.
+Validations : comparaison locale du slug de rôle.
+Limites : aucun écran de gestion des rôles; les droits réels doivent être imposés par Laravel.
+
+7. Étudiants
+État : implémentée et reliée à une API.
+Rôles : administrateur, chef de département selon les routes.
+Fichiers : src/app/features/students/pages/student-list/student-list.component.ts et .html; student-form/student-form.component.ts et .html; src/app/core/services/student.service.ts.
+API : GET/POST /students; GET/PUT/DELETE /students/{id}.
+Actions et données : liste, filtres, tri partiel, pagination, création, modification et suppression; données reliées aux départements, formations et années académiques.
+Validations : champs requis, e-mail, tailles maximales et date requise.
+Limites : tri exposé seulement sur certaines colonnes; comportement backend non vérifié.
+
+8. Promotions, départements et formations
+État : implémentée et reliée à une API pour les référentiels.
+Rôles : administrateur.
+Fichiers : src/app/features/admin/pages/departements/departments.component.ts et .html; programs/programs.component.ts et .html; academic-years/academic-years.component.ts et .html; src/app/core/services/admin.service.ts.
+API : /admin/departments, /admin/programs et /admin/academic-years — lecture, création, mise à jour et suppression.
+Actions et données : CRUD des départements, formations et années académiques; choix de niveau de diplôme et activation selon les pages.
+Validations : champs requis et tailles maximales de certains noms/codes; dates requises.
+Limites : pas de validation client de cohérence entre début et fin d’année.
+
+9. Proposition et création d’un mémoire
+État : partielle, reliée à une API.
+Rôles : création affichée pour l’étudiant; autorisations backend à confirmer.
+Fichiers : src/app/features/theses/pages/thesis-form/thesis-form.component.ts et .html; thesis-list/thesis-list.component.ts et .html.
+API : POST /theses; GET /theses.
+Actions et données : création d’un brouillon avec titre, résumé, département, formation et année académique; affichage et recherche dans les mémoires.
+Validations : titre requis et longueur maximale; département, formation et année requis.
+Limites : pas de parcours distinct de proposition et validation de sujet; pas de formulaire d’édition du mémoire identifié.
+
+10. Examen et statut d’un mémoire
+État : partielle, reliée à une API.
+Rôles : actions affichées selon l’auteur et le statut; permissions backend à confirmer.
+Fichiers : src/app/features/theses/pages/thesis-detail/thesis-detail.component.ts et .html; components/status-change-dialog/status-change-dialog.component.ts et .html.
+API : POST /theses/{id}/submit; POST /theses/{id}/status.
+Actions et données : soumission d’un brouillon et changement de statut avec remarques.
+Validations : transitions codées localement : draft → submitted → under_review → revision_required/approved/rejected; revision_required → submitted.
+Limites : le bouton de changement est caché à l’auteur, mais affiché à tout autre utilisateur authentifié lorsque des transitions existent. L’autorisation réelle doit être contrôlée par Laravel.
+
+11. Attribution des encadreurs
+État : implémentée et reliée à une API.
+Rôles : administrateur et chef de département selon l’interface.
+Fichiers : src/app/features/theses/pages/thesis-detail/thesis-detail.component.ts; components/assign-supervisor-dialog/assign-supervisor-dialog.component.ts et .html; src/app/core/services/lookup.service.ts.
+API : GET /lookups/supervisors; POST /theses/{id}/assign-supervisor.
+Actions et données : attribuer ou remplacer un encadreur sélectionné parmi ceux du département du mémoire.
+Validations : choix obligatoire.
+Limites : liste et persistance backend non testées.
+
+12. Versions et dépôt de fichiers
+État : implémentée et reliée à une API.
+Rôles : étudiant propriétaire affiché dans l’interface; autorisation backend à confirmer.
+Fichiers : src/app/features/theses/pages/thesis-detail/thesis-detail.component.ts et .html; src/app/core/services/thesis.service.ts; src/app/core/models/thesis.model.ts.
+API : POST /theses/{id}/versions; GET /theses/{id}/versions/{versionId}/download; méthode GET /theses/{id}/versions également présente dans le service.
+Actions et données : dépôt multipart, liste des versions reçues dans le détail, téléchargement.
+Validations : l’input HTML accepte .pdf, .docx et .zip.
+Limites : aucune limite de taille ou validation Angular du type MIME; la méthode listVersions n’est pas appelée par ce composant; sécurité à valider côté serveur.
+
+13. Commentaires et retours
+État : implémentée et reliée à une API.
+Rôles : utilisateurs authentifiés affichés par le composant; droits backend à confirmer.
+Fichiers : src/app/features/theses/pages/thesis-detail/thesis-detail.component.ts et .html; src/app/core/services/thesis.service.ts.
+API : GET /theses/{id}/comments; POST /theses/{id}/comments.
+Actions et données : publier et consulter des commentaires.
+Validations : contenu obligatoire, longueur maximale de 3 000 caractères.
+Limites : le formulaire n’offre pas de rattachement explicite à une version, malgré le champ optionnel du type.
+
+14. Suivi de l’avancement
+État : partielle, reliée à une API.
+Rôles : étudiant, encadreur et rôles autorisés par le backend.
+Fichiers : src/app/features/theses/pages/thesis-detail/thesis-detail.component.html; src/app/core/models/thesis.model.ts; src/app/features/supervisor/pages/supervisor-dashboard/supervisor-dashboard.component.ts.
+API : GET /theses/{id}; GET /theses avec filtres.
+Actions et données : affichage des statuts, versions, commentaires et historique des changements.
+Validations : transitions d’état du mémoire codées dans le frontend.
+Limites : pas de parcours complet de validation ni d’étapes configurables identifiés.
+
+15. Espace encadreur
+État : implémentée et reliée à une API.
+Rôles : encadreur.
+Fichiers : src/app/features/supervisor/pages/supervisor-dashboard/supervisor-dashboard.component.ts et .html; src/app/core/services/supervisor.service.ts et thesis.service.ts.
+API : GET /supervisors/me; GET /theses?supervisor_id=…
+Actions et données : liste des mémoires attribués et indicateur des mémoires en examen.
+Validations : filtrage des travaux par identifiant d’encadreur transmis à l’API.
+Limites : pas de commande dédiée de validation/retour distincte des fonctions du détail mémoire.
+
+16. Calendrier et planification des soutenances
+État : implémentée et reliée à une API.
+Rôles : administrateur et chef de département pour planifier; consultation selon accès.
+Fichiers : src/app/features/defenses/pages/defense-calendar/defense-calendar.component.ts et .html; defense-form/defense-form.component.ts et .html; src/app/core/services/defense-schedule.service.ts.
+API : GET /defense-schedules/calendar; POST /defense-schedules; GET /lookups/defense-rooms; GET /theses pour les mémoires approuvés.
+Actions et données : calendrier hebdomadaire, filtre par salle, planification d’un mémoire approuvé.
+Validations : date/heure requises; durée entre 30 et 240 minutes.
+Limites : conflits de salle laissés au backend; aucun écran de replanification malgré une méthode de service PUT disponible.
+
+17. Jurys et membres
+État : implémentée et reliée à une API.
+Rôles : administrateur/chef de département pour affecter; membre du jury pour consulter.
+Fichiers : src/app/features/defenses/components/assign-jury-dialog/assign-jury-dialog.component.ts et .html; defense-detail/defense-detail.component.ts et .html; src/app/core/services/lookup.service.ts.
+API : GET /lookups/jury-members; POST /defense-schedules/{id}/assign-jury.
+Actions et données : affectation d’un président, examinateur et rapporteur.
+Validations : rôles requis; trois identifiants distincts.
+Limites : le détail de soutenance ouvre le dialogue avec departmentId: 0; l’impact sur le lookup est à vérifier.
+
+18. Évaluations et résultat final
+État : partielle, reliée à une API.
+Rôles : membre du jury pour son évaluation; administrateur/chef pour la décision finale.
+Fichiers : src/app/features/defenses/pages/defense-detail/defense-detail.component.ts et .html; src/app/core/services/defense-schedule.service.ts.
+API : GET/POST /defense-schedules/{id}/evaluations; POST /defense-schedules/{id}/result.
+Actions et données : saisie d’un verdict, d’une note et de remarques; consultation des évaluations.
+Validations : verdict requis.
+Limites : pas de validateur Angular min/max sur les notes; les attributs HTML ne suffisent pas à valider le formulaire. Le contrôle de participation au jury relève du backend.
+
+19. Archives des mémoires
+État : appels API présents dans le worktree courant; intégration à la branche à confirmer.
+Rôles : administrateur pour la gestion.
+Fichiers : src/app/features/admin/pages/archives-admin/archives-admin.component.ts et .html; src/app/features/theses/components/archive-dialog/archive-dialog.component.ts et .html; src/app/core/services/admin-archive.service.ts.
+API : GET /admin/archives; GET /admin/theses/{id}/archive-eligibility; POST /admin/theses/{id}/archive; PUT/DELETE /admin/archives/{id}; GET /admin/archives/{id}/download.
+Actions et données : vérifier l’éligibilité, archiver, éditer visibilité et mots-clés, supprimer et télécharger.
+Validations : nombre maximal de 15 mots-clés; l’éligibilité est demandée à l’API.
+Limites : fichiers d’archives parmi les modifications locales non suivies/non commités; contrat backend et intégration non confirmés.
+
+20. Consultation et recherche publiques des archives
+État : appels API présents dans le worktree courant; à vérifier.
+Rôles : public et utilisateurs authentifiés.
+Fichiers : src/app/features/archives/pages/archive-list/archive-list.component.ts et .html; archive-detail/archive-detail.component.ts et .html; src/app/core/services/archive.service.ts; src/app/layout/public-layout/public-layout.component.ts.
+API : GET /archives; GET /archives/{id}; URL prévue /archives/{id}/download; lookups départements et années.
+Actions et données : recherche, filtre département/année/niveau, pagination et consultation de fiche; téléchargement affiché si can_download est vrai.
+Validations : aucune validation de formulaire nécessaire au-delà des filtres.
+Limites : accès réel et visibilité des fichiers à appliquer côté backend; fichiers récemment ajoutés dans le worktree.
+
+21. Notifications
+État : partielle; aucun système métier dédié identifié.
+Rôles : l’encadreur voit une alerte calculée; utilisateurs voient les messages d’erreur HTTP.
+Fichiers : src/app/features/supervisor/pages/supervisor-dashboard/supervisor-dashboard.component.ts; src/app/core/interceptors/error.interceptor.ts.
+API : aucune route de notifications identifiée.
+Actions et données : compteur d’éléments en examen et snackbars d’erreur.
+Limites : pas de centre de notifications, notifications persistantes ou service dédié.
+
+22. Tableaux de bord et statistiques
+État : présents côté interface, partiels.
+Rôles : tous les rôles codés.
+Fichiers : src/app/features/dashboard/dashboard.component.ts et .html; supervisor-dashboard et jury-dashboard.
+API : appels aux services de mémoires, encadreurs et soutenances; aucune API statistique identifiée.
+Actions et données : raccourcis statiques selon le rôle; listes et compteurs dérivés pour encadreurs/jury.
+Limites : aucun graphique ou tableau de bord statistique global.
+
+23. Procès-verbal et rapports
+État : partielle, reliée à une API.
+Rôles : bouton visible dans le détail; autorisations réelles à confirmer.
+Fichiers : src/app/features/defenses/pages/defense-detail/defense-detail.component.ts et .html; src/app/core/services/defense-schedule.service.ts.
+API : GET /defense-schedules/{id}/report.
+Actions et données : téléchargement d’un blob renommé defense-report-{id}.pdf.
+Validations : indicateur de téléchargement.
+Limites : aucun export CSV/Excel ou rapport global identifié.
+
+24. Journal et historique
+État : partielle.
+Rôles : utilisateurs pouvant consulter le détail du mémoire.
+Fichiers : src/app/features/theses/pages/thesis-detail/thesis-detail.component.html; src/app/core/models/thesis.model.ts.
+API : historique inclus dans GET /theses/{id}; route dédiée non identifiée.
+Actions et données : affichage des changements de statut, auteur, date et remarques.
+Limites : aucun journal global des actions utilisateurs.
+
+25. Paramètres de référence
+État : CRUD des référentiels relié à une API; configuration générale absente.
+Rôles : administrateur.
+Fichiers : src/app/features/admin/admin.routes.ts; pages départements, formations et années académiques; src/app/core/services/admin.service.ts.
+API : /admin/departments, /admin/programs et /admin/academic-years.
+Actions et données : administration des référentiels nécessaires aux formulaires.
+Limites : aucune page de configuration générale de la plateforme.
+
+============================================================
+D. INVENTAIRE PAR RÔLE
+============================================================
+
+Les rôles ci-dessous sont explicitement référencés par leurs slugs dans le code : administrator, head-of-department, supervisor, jury-member et student. Le modèle est src/app/core/models/role.model.ts.
+
+Administrateur :
+- Accès au menu administration, aux pages de référentiels, à la gestion et l’activation des utilisateurs, aux étudiants, à l’attribution des encadreurs, aux archives et aux actions de planification/délibération affichées.
+- Références : src/app/app.routes.ts et src/app/layout/main-layout/main-layout.component.ts.
+
+Chef de département :
+- Accès aux étudiants; l’interface permet aussi l’attribution d’encadreur, la planification des soutenances, l’affectation de jury et la décision finale.
+- Les routes d’administration générale lui sont refusées par le guard.
+
+Encadreur :
+- Page « Mes étudiants », profil chargé via /supervisors/me, puis mémoires associés à son identifiant; accès aux détails et commentaires par les pages mémoire.
+- Référence : src/app/features/supervisor/pages/supervisor-dashboard/supervisor-dashboard.component.ts.
+
+Membre du jury :
+- Page « Mes soutenances » alimentée par /defense-schedules/mine, consultation du détail et formulaire d’évaluation.
+- Référence : src/app/features/jury/pages/jury-dashboard/jury-dashboard.component.ts.
+
+Étudiant :
+- Menu mémoires et soutenances; création de brouillon et dépôt de versions visibles pour l’étudiant propriétaire.
+- La propriété du mémoire est comparée au nom complet plutôt qu’à un identifiant utilisateur dans thesis-detail.component.ts.
+
+Public non authentifié :
+- Layout et pages d’archives déclarés hors du guard d’authentification dans src/app/app.routes.ts.
+- La disponibilité des fiches et fichiers dépend du serveur.
+
+Important : les contrôles Angular sont des contrôles d’affichage/navigation. Les permissions, l’accès aux fichiers, la portée départementale des données et la validation des transitions doivent être appliqués par Laravel et ne peuvent être établis avec le seul frontend.
+
+============================================================
+E. FONCTIONNALITÉS SIMULÉES, INCOMPLÈTES OU ABSENTES
+============================================================
+
+Incomplètes ou partiellement couvertes :
+- Profil : auth.service.ts contient changePassword, mais aucune page ou formulaire de profil n’est identifié.
+- Utilisateurs/rôles : la page permet recherche, pagination et activation/désactivation; elle n’expose pas l’affectation de rôle. Fichiers : src/app/features/admin/pages/users/users.component.ts et .html.
+- Validation des mémoires : les transitions sont codées dans le frontend, mais plusieurs rôles non propriétaires peuvent voir le bouton de changement de statut. Les permissions doivent être contrôlées par l’API. Fichier : src/app/features/theses/pages/thesis-detail/thesis-detail.component.ts.
+- Dépôt documentaire : extensions .pdf, .docx et .zip déclarées dans le HTML, mais taille et contenu non vérifiés par le formulaire. Fichier : src/app/features/theses/pages/thesis-detail/thesis-detail.component.html.
+- Évaluations : les attributs min/max HTML ne constituent pas une validation Angular complète. Fichiers : src/app/features/defenses/pages/defense-detail/defense-detail.component.ts et .html.
+- Archives : l’interface sollicite le backend pour vérifier l’éligibilité et archiver, mais les fichiers correspondants sont des modifications locales non commités/non suivies d’après le git status observé. Intégration et contrat backend à confirmer.
+
+Simulées ou côté interface uniquement :
+- Cartes d’action du tableau de bord principal définies statiquement par rôle dans src/app/features/dashboard/dashboard.component.ts; ce ne sont pas des statistiques backend.
+- Notification d’examen encadreur calculée à partir de la liste des mémoires, pas un système de notification dédié. Fichier : src/app/features/supervisor/pages/supervisor-dashboard/supervisor-dashboard.component.ts.
+- Aucun jeu de mocks métier explicite n’a été repéré.
+
+Absentes ou non identifiées :
+- Édition du profil utilisateur.
+- Création/attribution de rôles depuis l’interface.
+- Centre de notifications métier.
+- Tableau de bord avec statistiques et graphiques globaux.
+- Export CSV/Excel.
+- Journal global d’activité.
+- Validation automatique complète du parcours étudiant.
+- Configuration générale de la plateforme.
+
+Aucun TODO ou FIXME n’a été repéré dans les recherches effectuées dans src. Cela ne prouve pas l’absence de données fictives dans des ressources ou configurations non repérées par ces marqueurs.
+
+============================================================
+F. QUALITÉ TECHNIQUE
+============================================================
+
+Points solides :
+- Découpage fonctionnel cohérent entre core, features, layout et shared.
+- Services dédiés aux principales ressources et modèles TypeScript associés.
+- Routes lazy-loadées et composants standalone.
+- Présence de pagination, filtres et états de chargement sur plusieurs listes.
+- Dialogues de confirmation, messages snackbar et intercepteurs transverses.
+- Validations réactives visibles pour champs obligatoires, e-mails, force et confirmation du mot de passe.
+- Des règles @media assurent une adaptation mobile sur plusieurs pages, notamment étudiants, soutenances, mémoires et archives.
+
+Problèmes et risques observés :
+- URL d’API : seule URL trouvée, http://localhost:8000/api; aucune substitution production identifiée dans la configuration consultée. À confirmer lors du build/déploiement.
+- Stockage du jeton : localStorage expose le jeton aux scripts exécutés dans l’origine en cas de faille XSS. Protections XSS, CSP et headers serveur non vérifiés.
+- Données locales : readUser() appelle JSON.parse sans traitement d’une valeur locale corrompue dans src/app/core/services/token-storage.service.ts.
+- Contrôles d’accès UI : l’identité du propriétaire est comparée par nom complet plutôt que par identifiant dans src/app/features/theses/pages/thesis-detail/thesis-detail.component.ts. Ce n’est pas un mécanisme d’autorisation fiable.
+- Gestion d’erreur inégale : l’intercepteur affiche des erreurs HTTP globales, mais certains composants n’ont aucun état d’erreur local; certaines erreurs de chargement ne font que mettre fin au chargement.
+- Listes : certaines données sont limitées sans interface de pagination; par exemple, les mémoires en attente d’archivage sont demandés avec une limite de 50.
+- Validation métier : dates, notes, conflits de salle, transitions et permissions souvent laissés au backend ou non validés dans les formulaires Angular.
+- Soutenances : le détail affiche des contrôles d’évaluation selon le rôle global jury-member; l’appartenance effective au jury doit être contrôlée côté backend.
+- Langue : certains libellés de menu et dates restent en anglais, alors que la plupart des pages sont en français.
+- Accessibilité : quelques éléments ont des libellés ARIA, mais peu d’attributs explicites ont été identifiés pour les boutons icône; aucun test clavier/lecteur d’écran effectué.
+- Tests : un seul fichier de test est recensé, src/app/app.component.spec.ts. Il attend le titre GestionMemoiresFrontend et le contenu « Hello, GestionMemoiresFrontend », alors que app.component.ts déclare SUMA et app.component.html ne contient pas ce texte. Ces attentes semblent obsolètes; test non exécuté.
+- Aucun test de fonctionnalité ou E2E identifié dans le manifeste consulté.
+
+============================================================
+G. CARTOGRAPHIE DES FICHIERS IMPORTANTS
+============================================================
+
+Routes, configuration et layouts :
+- src/app/app.routes.ts : routes globales, guards et layouts.
+- src/app/features/admin/admin.routes.ts, students/students.routes.ts, theses/theses.routes.ts, defenses/defenses.routes.ts, auth/auth.routes.ts, archives/archives.routes.ts : routes de chaque domaine.
+- src/app/app.config.ts : fournisseurs Angular, HTTP, interceptors et localisation française.
+- src/app/layout/main-layout/main-layout.component.ts : navigation authentifiée.
+- src/app/layout/public-layout/public-layout.component.ts : navigation publique.
+- src/environments/environment.ts : URL API trouvée.
+
+Services et sécurité côté client :
+- src/app/core/services/auth.service.ts et token-storage.service.ts : authentification et session.
+- src/app/core/services/admin.service.ts : utilisateurs et référentiels administratifs.
+- src/app/core/services/student.service.ts : opérations étudiants.
+- src/app/core/services/thesis.service.ts : mémoires, versions, commentaires et statuts.
+- src/app/core/services/lookup.service.ts : listes de référence.
+- src/app/core/services/supervisor.service.ts : profil encadreur.
+- src/app/core/services/defense-schedule.service.ts : soutenances, jurys, évaluations et rapports.
+- src/app/core/services/archive.service.ts et admin-archive.service.ts : consultation et administration des archives; présents dans le worktree courant.
+- src/app/core/guards et src/app/core/interceptors : guards et traitements HTTP transverses.
+
+Modèles et interfaces :
+- src/app/core/models/thesis.model.ts et src/app/core/interfaces/thesis.interface.ts : mémoire, statuts, versions, commentaires et historique.
+- src/app/core/models/student.model.ts et src/app/core/interfaces/student.interface.ts : étudiant, filtres et pagination.
+- src/app/core/models/defense-schedule.model.ts, defense-evaluation.model.ts et src/app/core/interfaces/defense.interface.ts : planning, jury, résultat et évaluations.
+- src/app/core/models/user.model.ts, role.model.ts et src/app/core/interfaces/auth.interface.ts : utilisateur, rôle et données d’authentification.
+- src/app/core/models : modèles de départements, formations, années, salles, jurés, encadreurs et archives.
+- src/app/core/interfaces/archive.interface.ts et src/app/core/models/thesis-archive.model.ts : types d’archives présents dans le worktree courant.
+
+Pages et composants :
+- src/app/features/auth : pages d’authentification.
+- src/app/features/admin : administration, utilisateurs, départements, formations, années et archives.
+- src/app/features/students : liste et formulaire étudiant.
+- src/app/features/theses : liste, formulaire, détail et dialogues métier.
+- src/app/features/defenses : calendrier, planification, détail et affectation du jury.
+- src/app/features/supervisor et src/app/features/jury : espaces encadreur et jury.
+- src/app/features/archives : consultation publique.
+- src/app/shared : dialogues, indicateur de chargement, pipe et validation partagés.
+
+============================================================
+H. TABLEAU DE SYNTHÈSE
+============================================================
+
+OPÉRATIONNELLES SELON LE CODE (appels HTTP présents, fonctionnement backend non vérifié)
+- Connexion/inscription et récupération du mot de passe.
+- CRUD de départements, formations, années académiques et étudiants.
+- Activation/désactivation d’utilisateurs.
+- Création/consultation de mémoires, attribution d’encadreur, versions et commentaires.
+- Vues encadreur et jury.
+- Calendrier, planification, affectation de jury, évaluations et téléchargement d’un rapport.
+- Archives publiques et administration d’archives dans le worktree courant.
+
+PARTIELLES
+- Parcours complet de validation des mémoires.
+- Gestion des rôles et permissions dans l’interface.
+- Profil et changement de mot de passe.
+- Validation métier des fichiers, notes et dates.
+- Notifications métier.
+- Suivi global de progression.
+- Historique global.
+- Statistiques et rapports globaux.
+
+SIMULÉES OU CÔTÉ INTERFACE UNIQUEMENT
+- Cartes d’action du tableau de bord.
+- Compteur d’examens en attente de l’encadreur.
+- Aucun mock explicite de données métier repéré.
+
+ABSENTES OU À VÉRIFIER
+- Gestion de profil.
+- Gestion/attribution des rôles.
+- Centre de notifications.
+- Statistiques graphiques.
+- Export CSV/Excel.
+- Journal d’activité global.
+- Configuration générale.
+- Existence et fonctionnement des routes Laravel, droits réels, téléchargements et comportement de production.
+
+============================================================
+I. INFORMATIONS NÉCESSAIRES POUR COMPLÉTER L’AUDIT
+============================================================
+
+Le code seul ne permet pas de confirmer :
+1. Le contrat backend : existence des routes listées, méthodes HTTP, formes de réponses, champs requis et conventions Laravel.
+2. Les autorisations réelles : accès et modification des mémoires, dépôts/téléchargements, attribution d’un jury et saisie d’un résultat.
+3. Le comportement à l’exécution : connexion au backend, persistance, erreurs réseau, filtres, pagination et téléchargements.
+4. La configuration de déploiement : URL API réellement utilisée par les builds; protections serveur telles que CORS, HTTPS, CSP et validation des fichiers.
+5. La qualité visuelle et l’accessibilité à l’exécution : responsive réel, navigation clavier, lecteur d’écran et cohérence dans un navigateur.
+6. Les tests : le test unitaire existant n’a pas été lancé; aucun test E2E n’a été trouvé dans le périmètre consulté.
+7. L’état de version des archives : modifications de routes, navigation et composants présentes localement mais non commités ou non suivies lors de l’inspection.
+
+LIMITES DE L’ANALYSE
+
+Audit réalisé en lecture seule du code. Le rapport décrit le worktree observé, y compris ses modifications locales. Aucune application, API ou suite de tests n’a été exécutée. Les routes mentionnées sont déduites des appels du frontend et ne prouvent pas leur existence côté Laravel.

@@ -1,0 +1,93 @@
+<!-- src/app/features/archives/pages/archive-detail/archive-detail.component.html -->
+<div class="detail-page">
+  <a routerLink="/archives" class="back-link">
+    <mat-icon>arrow_back</mat-icon>
+    Retour aux archives
+  </a>
+
+  @if (isLoading()) {
+    <p role="status">Chargement de l’archive…</p>
+  }
+  @if (errorMessage()) {
+    <p class="error-state" role="alert">{{ errorMessage() }}</p>
+  }
+  @if (downloadError()) {
+    <p class="error-state" role="alert">{{ downloadError() }}</p>
+  }
+  @if (notFound()) {
+    <mat-card class="not-found-card">
+      <h2>Mémoire introuvable</h2>
+      <p>Ce mémoire n'existe pas ou n'est pas accessible publiquement.</p>
+    </mat-card>
+  }
+
+  @if (archive(); as a) {
+    <mat-card class="detail-card">
+      <span class="detail-card__eyebrow">{{ a.program }} · {{ a.academic_year }}</span>
+      <h1>{{ a.title }}</h1>
+
+      <div class="detail-card__meta-grid">
+        <div>
+          <span class="meta-label">Auteur</span>
+          <span>{{ a.student_name }}</span>
+        </div>
+        <div>
+          <span class="meta-label">Encadreur</span>
+          <span>{{ a.supervisor_name ?? 'Non renseigné' }}</span>
+        </div>
+        <div>
+          <span class="meta-label">Département</span>
+          <span>{{ a.department }}</span>
+        </div>
+        <div>
+          <span class="meta-label">Date de soutenance</span>
+          <span>{{ a.defense_date ? (a.defense_date | date: 'longDate') : 'Non renseignée' }}</span>
+        </div>
+        @if (a.final_grade !== null) {
+          <div>
+            <span class="meta-label">Note finale</span>
+            <span>{{ a.final_grade }} / 20</span>
+          </div>
+        }
+      </div>
+
+      @if (a.abstract) {
+        <div class="detail-card__section">
+          <h2>Résumé</h2>
+          <p>{{ a.abstract }}</p>
+        </div>
+      }
+
+      @if (a.keywords?.length) {
+        <div class="detail-card__section">
+          <h2>Mots-clés</h2>
+          <mat-chip-set>
+            @for (k of a.keywords; track k) {
+              <mat-chip>{{ k }}</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      }
+
+      @if (a.jury_members.length > 0) {
+        <div class="detail-card__section">
+          <h2>Membres du jury</h2>
+          <ul>
+            @for (j of a.jury_members; track j) {
+              <li>{{ j }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (a.can_download) {
+        <button mat-flat-button color="primary" type="button" class="download-btn"
+          (click)="download()" [disabled]="isDownloading()"
+          aria-label="Télécharger le mémoire PDF">
+          <mat-icon>download</mat-icon>
+          {{ isDownloading() ? 'Téléchargement…' : 'Télécharger le mémoire PDF' }}
+        </button>
+      }
+    </mat-card>
+  }
+</div>

@@ -1,0 +1,42 @@
+<!-- src/app/features/admin/components/visibility-dialog/visibility-dialog.component.html -->
+<h2 mat-dialog-title>Gérer l'archive</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="visibility-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Visibilité</mat-label>
+      <mat-select formControlName="visibility">
+        <mat-option value="private">Privé (interne uniquement)</mat-option>
+        <mat-option value="public">Public (bibliothèque visiteurs)</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="show_final_grade">
+      Afficher la note finale publiquement
+    </mat-checkbox>
+
+    <div class="keywords-field">
+      <label>Mots-clés</label>
+      <mat-chip-set>
+        @for (k of keywords; track k) {
+          <mat-chip (removed)="removeKeyword(k)">
+            {{ k }}
+            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+          </mat-chip>
+        }
+      </mat-chip-set>
+      <div class="keywords-input">
+        <input
+          [value]="newKeyword"
+          (input)="newKeyword = $any($event.target).value"
+          (keydown.enter)="addKeyword(); $event.preventDefault()"
+          placeholder="Ajouter un mot-clé et appuyer sur Entrée"
+        />
+        <button mat-button type="button" (click)="addKeyword()">Ajouter</button>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Annuler</button>
+  <button mat-flat-button color="primary" (click)="submit()">Enregistrer</button>
+</mat-dialog-actions>

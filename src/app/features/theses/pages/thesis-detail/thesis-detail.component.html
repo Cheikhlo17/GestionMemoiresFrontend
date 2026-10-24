@@ -3,35 +3,83 @@
     <div class="thesis-detail-page__header">
       <div>
         <h1>{{ t.title }}</h1>
-        <span class="status-badge" [class]="'status-badge--' + t.status">
+
+        <span
+          class="status-badge"
+          [class]="'status-badge--' + t.status"
+        >
           {{ t.status | uiLabel }}
         </span>
       </div>
-  <div class="thesis-detail-page__actions">
-  @if (canAssignSupervisor) {
-    <button mat-stroked-button (click)="openAssignSupervisorDialog()">
-      {{ t.supervisor ? 'Modifier l’encadrant' : 'Attribuer un encadrant' }}
-    </button>
-  }
-  @if (t.status === 'draft' && isOwner) {
-    <button mat-flat-button color="primary" (click)="submitThesis()">
-      Soumettre pour examen
-    </button>
-  }
-  @if (allowedNextStatuses.length > 0 && !isOwner) {
-    <button mat-stroked-button color="primary" (click)="openStatusDialog()">
-      Modifier le statut
-    </button>
-  }
-</div>
+
+      <div class="thesis-detail-page__actions">
+        @if (canAssignSupervisor) {
+          <button
+            mat-stroked-button
+            (click)="openAssignSupervisorDialog()"
+          >
+            {{ t.supervisor ? 'Modifier l’encadrant' : 'Attribuer un encadrant' }}
+          </button>
+        }
+
+        @if (t.status === 'draft' && isOwner) {
+          <button
+            mat-flat-button
+            color="primary"
+            (click)="submitThesis()"
+          >
+            Soumettre pour examen
+          </button>
+        }
+
+        @if (allowedNextStatuses.length > 0 && !isOwner) {
+          <button
+            mat-stroked-button
+            color="primary"
+            (click)="openStatusDialog()"
+          >
+            Modifier le statut
+          </button>
+        }
+
+        @if (t.status === 'approved' && canAssignSupervisor) {
+          <button
+            mat-flat-button
+            color="accent"
+            (click)="openArchiveDialog()"
+          >
+            <mat-icon>archive</mat-icon>
+            Archiver
+          </button>
+        }
+      </div>
     </div>
 
     <mat-card class="thesis-detail-page__info">
-      <p><strong>Étudiant :</strong> {{ t.student.full_name }} ({{ t.student.student_number }})</p>
-      <p><strong>Encadrant :</strong> {{ t.supervisor?.full_name ?? 'Pas encore attribué' }}</p>
-      <p><strong>Département :</strong> {{ t.department.name }} — <strong>Formation :</strong> {{ t.program.name }}</p>
+      <p>
+        <strong>Étudiant :</strong>
+        {{ t.student.full_name }}
+        ({{ t.student.student_number }})
+      </p>
+
+      <p>
+        <strong>Encadrant :</strong>
+        {{ t.supervisor?.full_name ?? 'Pas encore attribué' }}
+      </p>
+
+      <p>
+        <strong>Département :</strong>
+        {{ t.department.name }}
+        —
+        <strong>Formation :</strong>
+        {{ t.program.name }}
+      </p>
+
       @if (t.abstract) {
-        <p><strong>Résumé :</strong> {{ t.abstract }}</p>
+        <p>
+          <strong>Résumé :</strong>
+          {{ t.abstract }}
+        </p>
       }
     </mat-card>
 
@@ -40,7 +88,13 @@
         <div class="tab-content">
           @if (isOwner) {
             <div class="upload-row">
-              <input type="file" accept=".pdf,.docx,.zip" (change)="onFileSelected($event)" aria-label="Choisir un fichier" />
+              <input
+                type="file"
+                accept=".pdf,.docx,.zip"
+                (change)="onFileSelected($event)"
+                aria-label="Choisir un fichier"
+              />
+
               <button
                 mat-flat-button
                 color="primary"
@@ -55,18 +109,32 @@
           <mat-list>
             @for (v of t.versions; track v.id) {
               <mat-list-item>
-                <mat-icon matListItemIcon>description</mat-icon>
-                <div matListItemTitle>v{{ v.version_number }} — {{ v.file_name }}</div>
-                <div matListItemLine>
-                  Déposé par {{ v.uploaded_by?.full_name }} le {{ v.created_at | date: 'medium' }}
+                <mat-icon matListItemIcon>
+                  description
+                </mat-icon>
+
+                <div matListItemTitle>
+                  v{{ v.version_number }} — {{ v.file_name }}
                 </div>
-                <button mat-icon-button (click)="downloadVersion(v.id, v.file_name)">
+
+                <div matListItemLine>
+                  Déposé par {{ v.uploaded_by?.full_name }}
+                  le {{ v.created_at | date: 'medium' }}
+                </div>
+
+                <button
+                  mat-icon-button
+                  (click)="downloadVersion(v.id, v.file_name)"
+                >
                   <mat-icon>download</mat-icon>
                 </button>
               </mat-list-item>
+
               <mat-divider></mat-divider>
             } @empty {
-              <p class="empty-state">Aucune version déposée pour le moment.</p>
+              <p class="empty-state">
+                Aucune version déposée pour le moment.
+              </p>
             }
           </mat-list>
         </div>
@@ -74,12 +142,31 @@
 
       <mat-tab label="Commentaires">
         <div class="tab-content">
-          <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="comment-form">
-            <mat-form-field appearance="outline" class="comment-form__field">
+          <form
+            [formGroup]="commentForm"
+            (ngSubmit)="addComment()"
+            class="comment-form"
+          >
+            <mat-form-field
+              appearance="outline"
+              class="comment-form__field"
+            >
               <mat-label>Ajouter un commentaire</mat-label>
-              <textarea matInput rows="2" formControlName="content" placeholder="Votre commentaire"></textarea>
+
+              <textarea
+                matInput
+                rows="2"
+                formControlName="content"
+                placeholder="Votre commentaire"
+              ></textarea>
             </mat-form-field>
-            <button mat-flat-button color="primary" type="submit" [disabled]="isCommenting()">
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="isCommenting()"
+            >
               Publier
             </button>
           </form>
@@ -87,13 +174,28 @@
           <mat-list>
             @for (c of t.comments; track c.id) {
               <mat-list-item class="comment-item">
-                <div matListItemTitle>{{ c.author.full_name }} ({{ c.author.role | uiLabel }})</div>
-                <div matListItemLine>{{ c.content }}</div>
-                <div matListItemLine class="comment-date">{{ c.created_at | date: 'medium' }}</div>
+                <div matListItemTitle>
+                  {{ c.author.full_name }}
+                  ({{ c.author.role | uiLabel }})
+                </div>
+
+                <div matListItemLine>
+                  {{ c.content }}
+                </div>
+
+                <div
+                  matListItemLine
+                  class="comment-date"
+                >
+                  {{ c.created_at | date: 'medium' }}
+                </div>
               </mat-list-item>
+
               <mat-divider></mat-divider>
             } @empty {
-              <p class="empty-state">Aucun commentaire pour le moment.</p>
+              <p class="empty-state">
+                Aucun commentaire pour le moment.
+              </p>
             }
           </mat-list>
         </div>
@@ -105,18 +207,32 @@
             @for (h of t.status_histories; track h.id) {
               <mat-list-item>
                 <div matListItemTitle>
-                  {{ h.from_status ? (h.from_status | uiLabel) : 'Créé' }} → {{ h.to_status | uiLabel }}
+                  {{
+                    h.from_status
+                      ? (h.from_status | uiLabel)
+                      : 'Créé'
+                  }}
+                  →
+                  {{ h.to_status | uiLabel }}
                 </div>
+
                 <div matListItemLine>
-                  Par {{ h.changed_by.full_name }} le {{ h.created_at | date: 'medium' }}
+                  Par {{ h.changed_by.full_name }}
+                  le {{ h.created_at | date: 'medium' }}
                 </div>
+
                 @if (h.remarks) {
-                  <div matListItemLine>{{ h.remarks }}</div>
+                  <div matListItemLine>
+                    {{ h.remarks }}
+                  </div>
                 }
               </mat-list-item>
+
               <mat-divider></mat-divider>
             } @empty {
-              <p class="empty-state">Aucun changement de statut enregistré.</p>
+              <p class="empty-state">
+                Aucun changement de statut enregistré.
+              </p>
             }
           </mat-list>
         </div>

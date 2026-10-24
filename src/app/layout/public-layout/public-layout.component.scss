@@ -1,0 +1,23 @@
+.public-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  &__spacer {
+    flex: 1 1 auto;
+  }
+}
+
+.public-content {
+  min-height: calc(100vh - 64px);
+  background: #f7f7fa;
+}

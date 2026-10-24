@@ -13,8 +13,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../../core/services/auth.service';
 import { DefenseJuryEvaluation } from '../../../../core/models/defense-evaluation.model';
-import { DefenseSchedule } from '../../../../core/models/defense-schedule.model';
+import { DefenseSchedule, DefenseVerdict } from '../../../../core/models/defense-schedule.model';
 import { DefenseScheduleService } from '../../../../core/services/defense-schedule.service';
+import { ThesisService } from '../../../../core/services/thesis.service';
 import {
   AssignJuryDialogComponent,
 } from '../../components/assign-jury-dialog/assign-jury-dialog.component';
@@ -44,6 +45,7 @@ export class DefenseDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly defenseService = inject(DefenseScheduleService);
+  private readonly thesisService = inject(ThesisService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   readonly authService = inject(AuthService);
@@ -52,16 +54,22 @@ export class DefenseDetailComponent implements OnInit {
   readonly evaluations = signal<DefenseJuryEvaluation[]>([]);
   readonly isLoading = signal(false);
   readonly isDownloading = signal(false);
+  readonly isLoadingJury = signal(false);
+  readonly isAssigningJury = signal(false);
+  readonly isSubmittingEvaluation = signal(false);
+  readonly isSubmittingResult = signal(false);
+  readonly isCancelling = signal(false);
+  readonly errorMessage = signal<string | null>(null);
 
   readonly evaluationForm = this.fb.group({
-    grade: [null as number | null],
-    verdict: [null as string | null, [Validators.required]],
+    grade: [null as number | null, [Validators.min(0), Validators.max(20)]],
+    verdict: ['' as DefenseVerdict, [Validators.required]],
     remarks: [null as string | null],
   });
 
   readonly resultForm = this.fb.group({
-    final_grade: [null as number | null],
-    verdict: [null as string | null, [Validators.required]],
+    final_grade: [null as number | null, [Validators.min(0), Validators.max(20)]],
+    verdict: ['' as DefenseVerdict, [Validators.required]],
     remarks: [null as string | null],
   });
 
@@ -80,6 +88,7 @@ export class DefenseDetailComponent implements OnInit {
 
   private loadSchedule(id: number): void {
     this.isLoading.set(true);
+    this.errorMessage.set(null);
     this.defenseService.get(id).subscribe({
       next: (res) => {
         this.schedule.set(res.data);
@@ -96,7 +105,10 @@ export class DefenseDetailComponent implements OnInit {
           this.loadEvaluations(id);
         }
       },
-      error: () => this.isLoading.set(false),
+      error: () => {
+        this.isLoading.set(false);
+        this.errorMessage.set('Impossible de charger les informations de la soutenance.');
+      },
     });
   }
 
@@ -120,27 +132,47 @@ export class DefenseDetailComponent implements OnInit {
 
   openAssignJuryDialog(): void {
     const schedule = this.schedule();
-    if (!schedule) return;
+    if (!schedule || this.isLoadingJury() || this.isAssigningJury()) return;
 
-    const dialogRef = this.dialog.open(AssignJuryDialogComponent, {
-      data: { departmentId: 0, existingJury: schedule.jury_members },
-      width: '480px',
-    });
+    this.isLoadingJury.set(true);
+    this.thesisService.get(schedule.thesis.id).subscribe({
+      next: (res) => {
+        this.isLoadingJury.set(false);
+        const dialogRef = this.dialog.open(AssignJuryDialogComponent, {
+          data: {
+            departmentId: res.data.department.id,
+            existingJury: schedule.jury_members,
+          },
+          width: '480px',
+        });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) return;
+        dialogRef.afterClosed().subscribe((result) => {
+          if (!result) return;
 
-      this.defenseService.assignJury(schedule.id, result).subscribe({
-        next: () => {
-          this.snackBar.open('Jury attribué avec succès.', 'Fermer', { duration: 3000 });
-          this.loadSchedule(schedule.id);
-        },
-        error: () => {
-          this.snackBar.open('Impossible d’attribuer le jury.', 'Fermer', {
-            duration: 4000,
+          this.isAssigningJury.set(true);
+          this.defenseService.assignJury(schedule.id, result).subscribe({
+            next: () => {
+              this.isAssigningJury.set(false);
+              this.snackBar.open('Jury attribué avec succès.', 'Fermer', { duration: 3000 });
+              this.loadSchedule(schedule.id);
+            },
+            error: () => {
+              this.isAssigningJury.set(false);
+              this.snackBar.open('Impossible d’attribuer le jury.', 'Fermer', {
+                duration: 4000,
+              });
+            },
           });
-        },
-      });
+        });
+      },
+      error: () => {
+        this.isLoadingJury.set(false);
+        this.snackBar.open(
+          'Impossible de charger le département du mémoire pour filtrer les membres du jury.',
+          'Fermer',
+          { duration: 5000 }
+        );
+      },
     });
   }
 
@@ -158,16 +190,25 @@ export class DefenseDetailComponent implements OnInit {
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
 
+      this.isCancelling.set(true);
       this.defenseService.cancel(schedule.id, 'Cancelled by administration').subscribe({
         next: () => {
+          this.isCancelling.set(false);
           this.snackBar.open('Soutenance annulée.', 'Fermer', { duration: 3000 });
           this.loadSchedule(schedule.id);
+        },
+        error: () => {
+          this.isCancelling.set(false);
+          this.snackBar.open('Impossible d’annuler la soutenance.', 'Fermer', {
+            duration: 4000,
+          });
         },
       });
     });
   }
 
   submitEvaluation(): void {
+    if (this.isSubmittingEvaluation()) return;
     if (this.evaluationForm.invalid) {
       this.evaluationForm.markAllAsTouched();
       return;
@@ -177,22 +218,27 @@ export class DefenseDetailComponent implements OnInit {
     if (!schedule) return;
 
     const raw = this.evaluationForm.getRawValue();
+    if (!raw.verdict) return;
 
+    this.isSubmittingEvaluation.set(true);
     this.defenseService
       .submitEvaluation(schedule.id, {
         grade: raw.grade,
-        verdict: raw.verdict as any,
+        verdict: raw.verdict,
         remarks: raw.remarks || undefined,
       })
       .subscribe({
         next: () => {
+          this.isSubmittingEvaluation.set(false);
           this.snackBar.open('Votre évaluation a été enregistrée.', 'Fermer', { duration: 3000 });
           this.loadEvaluations(schedule.id);
         },
+        error: () => this.isSubmittingEvaluation.set(false),
       });
   }
 
   submitResult(): void {
+    if (this.isSubmittingResult()) return;
     if (this.resultForm.invalid) {
       this.resultForm.markAllAsTouched();
       return;
@@ -202,18 +248,22 @@ export class DefenseDetailComponent implements OnInit {
     if (!schedule) return;
 
     const raw = this.resultForm.getRawValue();
+    if (!raw.verdict) return;
 
+    this.isSubmittingResult.set(true);
     this.defenseService
       .recordResult(schedule.id, {
         final_grade: raw.final_grade,
-        verdict: raw.verdict as any,
+        verdict: raw.verdict,
         remarks: raw.remarks || undefined,
       })
       .subscribe({
         next: () => {
+          this.isSubmittingResult.set(false);
           this.snackBar.open('Décision finale enregistrée avec succès.', 'Fermer', { duration: 3000 });
           this.loadSchedule(schedule.id);
         },
+        error: () => this.isSubmittingResult.set(false),
       });
   }
 
@@ -232,7 +282,12 @@ export class DefenseDetailComponent implements OnInit {
         a.click();
         window.URL.revokeObjectURL(url);
       },
-      error: () => this.isDownloading.set(false),
+      error: () => {
+        this.isDownloading.set(false);
+        this.snackBar.open('Impossible de télécharger le procès-verbal.', 'Fermer', {
+          duration: 4000,
+        });
+      },
     });
   }
 }

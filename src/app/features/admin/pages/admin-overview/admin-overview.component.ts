@@ -16,5 +16,6 @@ export class AdminOverviewComponent {
     { label: 'Formations', route: 'programs' },
     { label: 'Années académiques', route: 'academic-years' },
     { label: 'Utilisateurs', route: 'users' },
+    { label: 'Archives', route: 'archives' },
   ];
 }

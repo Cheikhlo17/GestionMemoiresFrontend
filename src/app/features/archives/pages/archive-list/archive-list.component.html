@@ -1,0 +1,105 @@
+<div class="archive-page">
+  <div class="archive-page__hero">
+    <h1>Bibliothèque numérique des mémoires</h1>
+    <p>Consultez les travaux de fin d'études soutenus et validés par l'université.</p>
+  </div>
+
+  <mat-card class="archive-page__filters">
+    <form [formGroup]="filterForm" class="filters-form">
+      <mat-form-field appearance="outline" class="filters-form__search">
+        <mat-label>Rechercher</mat-label>
+        <input
+          matInput
+          formControlName="search"
+          placeholder="Titre, étudiant, encadreur, mot-clé..."
+        />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Département</mat-label>
+        <mat-select formControlName="department_id">
+          <mat-option [value]="null">Tous</mat-option>
+          @for (d of departments(); track d.id) {
+            <mat-option [value]="d.id">{{ d.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Année académique</mat-label>
+        <mat-select formControlName="academic_year_id">
+          <mat-option [value]="null">Toutes</mat-option>
+          @for (y of academicYears(); track y.id) {
+            <mat-option [value]="y.id">{{ y.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Formation</mat-label>
+        <mat-select formControlName="program_id">
+          <mat-option [value]="null">Toutes</mat-option>
+          @for (p of programs(); track p.id) {
+            <mat-option [value]="p.id">{{ p.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Niveau</mat-label>
+        <mat-select formControlName="degree_level">
+          <mat-option [value]="null">Tous</mat-option>
+          <mat-option value="bachelor">Licence</mat-option>
+          <mat-option value="master">Master</mat-option>
+          <mat-option value="phd">Doctorat</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card>
+
+  @if (errorMessage()) {
+    <p class="error-state" role="alert">{{ errorMessage() }}</p>
+  }
+  @if (isLoading()) {
+    <p role="status">Chargement des archives…</p>
+  }
+
+  <div class="archive-page__grid">
+    @for (a of archives(); track a.id) {
+      <mat-card class="archive-card">
+        <h3>{{ a.title }}</h3>
+        <p class="archive-card__meta">
+          {{ a.student_name }} · {{ a.program }} · {{ a.academic_year }}
+        </p>
+        @if (a.abstract) {
+          <p class="archive-card__abstract">{{ a.abstract }}</p>
+        }
+        @if (a.keywords?.length) {
+          <mat-chip-set class="archive-card__keywords">
+            @for (k of a.keywords; track k) {
+              <mat-chip>{{ k }}</mat-chip>
+            }
+          </mat-chip-set>
+        }
+        <a mat-button color="primary" [routerLink]="['/archives', a.id]">
+          Consulter la fiche
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </mat-card>
+    } @empty {
+      @if (!isLoading() && !errorMessage()) {
+        <p class="empty-state">Aucun mémoire archivé ne correspond à votre recherche.</p>
+      }
+    }
+  </div>
+
+  <mat-paginator
+    [length]="totalItems()"
+    [pageSize]="pageSize()"
+    [pageIndex]="pageIndex()"
+    [pageSizeOptions]="[10, 20, 50]"
+    (page)="onPageChange($event)"
+  >
+  </mat-paginator>
+</div>

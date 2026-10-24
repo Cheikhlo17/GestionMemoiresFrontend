@@ -1,0 +1,59 @@
+// src/app/features/admin/pages/archives-admin/archives-admin.component.scss
+.archives-admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-card,
+.table-card {
+  padding: 16px;
+
+  h2 {
+    font-size: 15px;
+    margin: 0 0 8px;
+  }
+}
+
+.filters-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1 1 200px;
+  }
+
+  &__search {
+    flex: 2 1 260px;
+  }
+}
+
+.hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  margin: 0 0 12px;
+}
+
+.empty-state {
+  padding: 16px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+table {
+  width: 100%;
+}
+
+.visibility-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  background: #eceff1;
+  color: #455a64;
+
+  &--public {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+}

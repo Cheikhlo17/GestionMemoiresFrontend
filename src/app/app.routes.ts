@@ -1,3 +1,4 @@
+// src/app/app.routes.ts (updated: adds public /archives route, outside authGuard)
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
@@ -8,6 +9,22 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () =>
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
+  },
+  {
+    path: 'archives',
+    loadComponent: () =>
+      import('./layout/public-layout/public-layout.component').then(
+        (m) => m.PublicLayoutComponent
+      ),
+    children: [
+      {
+        path: '',
+        loadChildren: () =>
+          import('./features/archives/archives.routes').then(
+            (m) => m.ARCHIVES_ROUTES
+          ),
+      },
+    ],
   },
   {
     path: '',
@@ -23,7 +40,15 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
           ),
-        title: 'Tableau de bord',
+        title: 'Dashboard',
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/profile/profile.component').then(
+            (m) => m.ProfileComponent
+          ),
+        title: 'Mon profil',
       },
       {
         path: 'students',
@@ -71,7 +96,7 @@ export const routes: Routes = [
           import('./features/forbidden/forbidden.component').then(
             (m) => m.ForbiddenComponent
           ),
-        title: 'Accès interdit',
+        title: 'Forbidden',
       },
     ],
   },

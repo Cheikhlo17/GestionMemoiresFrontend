@@ -14,6 +14,7 @@ interface NavItem {
   icon: string;
   route: string;
   roles: string[];
+  external?: boolean;
 }
 
 @Component({
@@ -40,12 +41,14 @@ export class MainLayoutComponent {
   readonly isSidenavOpen = signal(true);
 
   private readonly allNavItems: NavItem[] = [
-    { label: 'Tableau de bord', icon: 'dashboard', route: '/dashboard', roles: [] },
-    { label: 'Étudiants', icon: 'school', route: '/students', roles: ['administrator', 'head-of-department'] },
-    { label: 'Mes étudiants', icon: 'groups', route: '/supervisor', roles: ['supervisor'] },
-    { label: 'Mes soutenances', icon: 'gavel', route: '/jury', roles: ['jury-member'] },
-    { label: 'Mémoires', icon: 'article', route: '/theses', roles: [] },
-    { label: 'Soutenances', icon: 'event', route: '/defenses', roles: [] },
+    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: [] },
+    { label: 'Mon profil', icon: 'account_circle', route: '/profile', roles: [] },
+    { label: 'Students', icon: 'school', route: '/students', roles: ['administrator', 'head-of-department'] },
+    { label: 'My Students', icon: 'groups', route: '/supervisor', roles: ['supervisor'] },
+    { label: 'My Defenses', icon: 'gavel', route: '/jury', roles: ['jury-member'] },
+    { label: 'Theses', icon: 'article', route: '/theses', roles: [] },
+    { label: 'Defenses', icon: 'event', route: '/defenses', roles: [] },
+    { label: 'Archives', icon: 'local_library', route: '/archives', roles: [] },
     { label: 'Administration', icon: 'admin_panel_settings', route: '/admin', roles: ['administrator'] },
   ];
 

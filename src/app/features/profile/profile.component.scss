@@ -1,0 +1,35 @@
+.profile-page {
+  display: grid;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+
+  h1,
+  h2 {
+    margin-top: 0;
+  }
+
+  &__message {
+    padding: 12px;
+    border-radius: 4px;
+
+    &--error {
+      color: #b3261e;
+      background: #f9dedc;
+    }
+
+    &--success {
+      color: #146c2e;
+      background: #e0f2e5;
+    }
+  }
+}
+
+.profile-card {
+  padding: 24px;
+
+  form {
+    display: grid;
+    gap: 8px;
+  }
+}

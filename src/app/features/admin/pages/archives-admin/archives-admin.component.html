@@ -1,0 +1,113 @@
+<!-- src/app/features/admin/pages/archives-admin/archives-admin.component.html -->
+<div class="archives-admin-page">
+  <mat-card class="table-card">
+    <h2>Mémoires prêts à être archivés</h2>
+    <p class="hint">
+      Mémoires au statut « Approuvé ». Le bouton « Archiver » vérifie automatiquement que la
+      soutenance est terminée, qu'un résultat final existe et qu'un PDF est disponible.
+    </p>
+
+    <table mat-table [dataSource]="pending()">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Titre</th>
+        <td mat-cell *matCellDef="let t">{{ t.title }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="student">
+        <th mat-header-cell *matHeaderCellDef>Étudiant</th>
+        <td mat-cell *matCellDef="let t">{{ t.student.full_name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef>Action</th>
+        <td mat-cell *matCellDef="let t">
+          <button mat-flat-button color="primary" (click)="openArchiveDialog(t)">
+            <mat-icon>archive</mat-icon>
+            Archiver
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="pendingColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: pendingColumns"></tr>
+    </table>
+
+    @if (pending().length === 0) {
+      <p class="empty-state">Aucun mémoire approuvé en attente d'archivage.</p>
+    }
+  </mat-card>
+
+  <mat-card class="filter-card">
+    <h2>Archives existantes</h2>
+    <form [formGroup]="filterForm" class="filters-form">
+      <mat-form-field appearance="outline" class="filters-form__search">
+        <mat-label>Rechercher</mat-label>
+        <input matInput formControlName="search" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Visibilité</mat-label>
+        <mat-select formControlName="visibility">
+          <mat-option [value]="null">Toutes</mat-option>
+          <mat-option value="public">Public</mat-option>
+          <mat-option value="private">Privé</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card>
+
+  <mat-card class="table-card">
+    <table mat-table [dataSource]="archives()">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Titre</th>
+        <td mat-cell *matCellDef="let a">{{ a.title }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="student">
+        <th mat-header-cell *matHeaderCellDef>Étudiant</th>
+        <td mat-cell *matCellDef="let a">{{ a.student_name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="archived_at">
+        <th mat-header-cell *matHeaderCellDef>Archivé le</th>
+        <td mat-cell *matCellDef="let a">{{ a.archived_at | date: 'mediumDate' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="visibility">
+        <th mat-header-cell *matHeaderCellDef>Visibilité</th>
+        <td mat-cell *matCellDef="let a">
+          <span class="visibility-badge" [class.visibility-badge--public]="a.visibility === 'public'">
+            {{ a.visibility === 'public' ? 'Public' : 'Privé' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let a">
+          <button mat-icon-button (click)="download(a)" matTooltip="Télécharger">
+            <mat-icon>download</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openVisibilityDialog(a)" matTooltip="Gérer la visibilité">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="remove(a)" matTooltip="Supprimer">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalItems()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPageChange($event)"
+    >
+    </mat-paginator>
+  </mat-card>
+</div>

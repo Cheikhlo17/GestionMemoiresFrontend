@@ -34,6 +34,13 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () =>
           import('./pages/users/users.component').then((m) => m.UsersComponent),
       },
+      {
+        path: 'archives',
+        loadComponent: () =>
+          import('./pages/archives-admin/archives-admin.component').then(
+            (m) => m.ArchivesAdminComponent
+          ),
+      },
     ],
   },
 ];

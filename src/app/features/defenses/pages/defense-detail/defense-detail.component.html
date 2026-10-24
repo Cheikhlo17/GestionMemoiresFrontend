@@ -1,3 +1,9 @@
+@if (isLoading()) {
+  <p role="status">Chargement de la soutenance…</p>
+}
+@if (errorMessage()) {
+  <p class="error-message" role="alert">{{ errorMessage() }}</p>
+}
 @if (schedule(); as s) {
   <div class="defense-detail-page">
     <div class="defense-detail-page__header">
@@ -6,12 +12,12 @@
         <span class="status-badge" [class]="'status-badge--' + s.status">{{ s.status | uiLabel }}</span>
       </div>
       <div class="defense-detail-page__actions">
-        <button mat-stroked-button (click)="downloadReport()" [disabled]="isDownloading()">
+        <button mat-stroked-button (click)="downloadReport()" [disabled]="isDownloading()" aria-label="Télécharger le procès-verbal">
           <mat-icon>picture_as_pdf</mat-icon>
           Télécharger le procès-verbal
         </button>
         @if (canManage && s.status === 'scheduled') {
-          <button mat-stroked-button color="warn" (click)="cancelDefense()">Annuler la soutenance</button>
+          <button mat-stroked-button color="warn" (click)="cancelDefense()" [disabled]="isCancelling()">Annuler la soutenance</button>
         }
       </div>
     </div>
@@ -27,7 +33,7 @@
       <div class="jury-card__header">
         <h2>Membres du jury</h2>
         @if (canManage && s.status === 'scheduled') {
-          <button mat-button color="primary" (click)="openAssignJuryDialog()">
+          <button mat-button color="primary" (click)="openAssignJuryDialog()" [disabled]="isLoadingJury() || isAssigningJury()">
             {{ s.jury_members.length ? 'Modifier le jury' : 'Attribuer le jury' }}
           </button>
         }
@@ -67,7 +73,7 @@
             <textarea matInput rows="3" formControlName="remarks"></textarea>
           </mat-form-field>
 
-          <button mat-flat-button color="primary" type="submit">Enregistrer mon évaluation</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmittingEvaluation()">Enregistrer mon évaluation</button>
         </form>
       </mat-card>
     }
@@ -113,7 +119,7 @@
             <textarea matInput rows="3" formControlName="remarks"></textarea>
           </mat-form-field>
 
-          <button mat-flat-button color="primary" type="submit">Confirmer la décision finale</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmittingResult()">Confirmer la décision finale</button>
         </form>
       </mat-card>
     }

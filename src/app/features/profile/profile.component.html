@@ -1,0 +1,71 @@
+<div class="profile-page">
+  <h1>Mon profil</h1>
+
+  @if (isLoading()) {
+    <p role="status">Chargement du profil…</p>
+  }
+
+  @if (user(); as currentUser) {
+    <mat-card class="profile-card">
+      <h2>Informations du compte</h2>
+      <p><strong>Nom :</strong> {{ currentUser.full_name }}</p>
+      <p><strong>E-mail :</strong> {{ currentUser.email }}</p>
+      <p><strong>Rôle :</strong> {{ currentUser.role.name | uiLabel }}</p>
+    </mat-card>
+  }
+
+  <mat-card class="profile-card">
+    <h2>Modifier le mot de passe</h2>
+
+    @if (errorMessage()) {
+      <p class="profile-page__message profile-page__message--error" role="alert">
+        {{ errorMessage() }}
+      </p>
+    }
+    @if (successMessage()) {
+      <p class="profile-page__message profile-page__message--success" role="status">
+        {{ successMessage() }}
+      </p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="changePassword()">
+      <mat-form-field appearance="outline">
+        <mat-label>Mot de passe actuel</mat-label>
+        <input matInput type="password" formControlName="current_password" autocomplete="current-password" />
+        @if (form.controls.current_password.hasError('required') && form.controls.current_password.touched) {
+          <mat-error>Le mot de passe actuel est obligatoire.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nouveau mot de passe</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="new-password" />
+        @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+          <mat-error>Le nouveau mot de passe est obligatoire.</mat-error>
+        }
+        @if (form.controls.password.hasError('strongPassword') && form.controls.password.touched) {
+          <mat-error>8 caractères minimum, avec une majuscule, une minuscule, un chiffre et un symbole.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Confirmer le nouveau mot de passe</mat-label>
+        <input matInput type="password" formControlName="password_confirmation" autocomplete="new-password" />
+        @if (form.controls.password_confirmation.hasError('required') && form.controls.password_confirmation.touched) {
+          <mat-error>La confirmation est obligatoire.</mat-error>
+        }
+        @if (form.controls.password_confirmation.hasError('passwordMismatch') && form.controls.password_confirmation.touched) {
+          <mat-error>Les mots de passe ne correspondent pas.</mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting() || isLoading()">
+        @if (isSubmitting()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          Modifier le mot de passe
+        }
+      </button>
+    </form>
+  </mat-card>
+</div>
