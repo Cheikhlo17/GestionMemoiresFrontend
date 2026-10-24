@@ -11,6 +11,72 @@
       <p><strong>Nom :</strong> {{ currentUser.full_name }}</p>
       <p><strong>E-mail :</strong> {{ currentUser.email }}</p>
       <p><strong>Rôle :</strong> {{ currentUser.role.name | uiLabel }}</p>
+
+      @if (profileError()) {
+        <p class="profile-page__message profile-page__message--error" role="alert">
+          {{ profileError() }}
+        </p>
+      }
+      @if (profileSuccess()) {
+        <p class="profile-page__message profile-page__message--success" role="status">
+          {{ profileSuccess() }}
+        </p>
+      }
+
+      <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+        <mat-form-field appearance="outline">
+          <mat-label>Prénom</mat-label>
+          <input matInput formControlName="first_name" autocomplete="given-name" />
+          @if (profileForm.controls.first_name.hasError('required') && profileForm.controls.first_name.touched) {
+            <mat-error>Le prénom est obligatoire.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nom</mat-label>
+          <input matInput formControlName="last_name" autocomplete="family-name" />
+          @if (profileForm.controls.last_name.hasError('required') && profileForm.controls.last_name.touched) {
+            <mat-error>Le nom est obligatoire.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Adresse e-mail</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (profileForm.controls.email.hasError('required') && profileForm.controls.email.touched) {
+            <mat-error>L’adresse e-mail est obligatoire.</mat-error>
+          }
+          @if (profileForm.controls.email.hasError('email') && profileForm.controls.email.touched) {
+            <mat-error>Saisissez une adresse e-mail valide.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Téléphone</mat-label>
+          <input matInput type="tel" formControlName="phone" autocomplete="tel" />
+        </mat-form-field>
+
+        <label class="profile-page__file-label" for="profile-avatar">Photo de profil (image, 2 Mo maximum)</label>
+        <input
+          id="profile-avatar"
+          type="file"
+          accept="image/*"
+          (change)="onAvatarSelected($event)"
+          aria-describedby="profile-avatar-help"
+        />
+        <span id="profile-avatar-help">
+          {{ selectedAvatar()?.name ?? 'Aucune nouvelle image sélectionnée.' }}
+        </span>
+
+        <button mat-flat-button color="primary" type="submit"
+          [disabled]="isUpdatingProfile() || isLoading()">
+          @if (isUpdatingProfile()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            Enregistrer le profil
+          }
+        </button>
+      </form>
     </mat-card>
   }
 

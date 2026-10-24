@@ -14,6 +14,7 @@ import {
   LoginPayload,
   RegisterPayload,
   ResetPasswordPayload,
+  UpdateProfilePayload,
 } from '../interfaces/auth.interface';
 import { TokenStorageService } from './token-storage.service';
 
@@ -91,6 +92,21 @@ export class AuthService {
       `${this.baseUrl}/change-password`,
       payload
     );
+  }
+
+  updateProfile(payload: UpdateProfilePayload): Observable<ApiSuccessResponse<User>> {
+    const formData = new FormData();
+    formData.append('first_name', payload.first_name);
+    formData.append('last_name', payload.last_name);
+    formData.append('email', payload.email);
+    formData.append('phone', payload.phone);
+    if (payload.avatar) {
+      formData.append('avatar', payload.avatar);
+    }
+
+    return this.http
+      .post<ApiSuccessResponse<User>>(`${this.baseUrl}/profile`, formData)
+      .pipe(tap((res) => this.tokenStorage.setUser(res.data)));
   }
 
   hasRole(...roles: string[]): boolean {

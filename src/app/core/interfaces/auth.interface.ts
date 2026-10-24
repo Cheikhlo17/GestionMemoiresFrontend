@@ -28,3 +28,11 @@ export interface ChangePasswordPayload {
   password: string;
   password_confirmation: string;
 }
+
+export interface UpdateProfilePayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  avatar?: File;
+}
