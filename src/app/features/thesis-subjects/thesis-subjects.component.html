@@ -1,0 +1,152 @@
+<main class="page">
+  <header class="page-header">
+    <div>
+      <h1>Sujets de mémoire</h1>
+      <p>Consultez les sujets et suivez l’état des propositions.</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button type="button" (click)="openForm('proposal')" *ngIf="isStudent">
+        Proposer un sujet
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="openForm('publish')" *ngIf="canManage">
+        Publier un sujet
+      </button>
+    </div>
+  </header>
+
+  <section class="filters" aria-label="Filtres">
+    <mat-form-field appearance="outline">
+      <mat-label>Statut</mat-label>
+      <mat-select [(ngModel)]="statusFilter" (selectionChange)="loadSubjects(1)">
+        <mat-option value="">Tous les statuts</mat-option>
+        <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <span>{{ total }} résultat(s)</span>
+  </section>
+
+  <p class="error" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+  <div class="loading" *ngIf="loading" aria-live="polite">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Chargement des sujets…</span>
+  </div>
+  <p class="empty" *ngIf="!loading && !subjects.length">Aucun sujet ne correspond à ce filtre.</p>
+
+  <section class="subject-list" *ngIf="!loading && subjects.length">
+    <mat-card *ngFor="let subject of subjects">
+      <mat-card-header>
+        <mat-card-title>{{ subject.title }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ subject.department?.name || 'Département non précisé' }} · {{ subject.status }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p *ngIf="subject.problem_statement">{{ subject.problem_statement }}</p>
+        <p *ngIf="subject.objectives"><strong>Objectifs :</strong> {{ subject.objectives }}</p>
+        <p *ngIf="subject.keywords?.length"><strong>Mots-clés :</strong> {{ subject.keywords?.join(', ') }}</p>
+        <p *ngIf="subject.decision_reason"><strong>Retour :</strong> {{ subject.decision_reason }}</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button
+          mat-button
+          type="button"
+          [disabled]="saving"
+          *ngIf="isStudent && (subject.status === 'draft' || subject.status === 'rejected')"
+          (click)="openForm('edit', subject)"
+        >Modifier</button>
+        <button
+          mat-button
+          type="button"
+          [disabled]="saving"
+          *ngIf="isStudent && (subject.status === 'draft' || subject.status === 'rejected')"
+          (click)="submitProposal(subject)"
+        >Soumettre</button>
+        <button
+          mat-button
+          type="button"
+          [disabled]="saving"
+          *ngIf="isStudent && subject.status === 'published'"
+          (click)="selectSubject(subject)"
+        >Choisir ce sujet</button>
+        <button
+          mat-button
+          type="button"
+          [disabled]="saving"
+          *ngIf="canManage && (subject.status === 'submitted' || subject.status === 'under_review')"
+          (click)="reviewSubjectId = reviewSubjectId === subject.id ? null : subject.id; reviewRemarks = ''"
+        >Examiner</button>
+      </mat-card-actions>
+      <div class="review-form" *ngIf="reviewSubjectId === subject.id">
+        <mat-form-field appearance="outline">
+          <mat-label>Décision</mat-label>
+          <mat-select [(ngModel)]="reviewStatus">
+            <mat-option value="under_review">En cours d’examen</mat-option>
+            <mat-option value="accepted">Accepter</mat-option>
+            <mat-option value="rejected">Rejeter</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Remarques (obligatoires en cas de rejet)</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="reviewRemarks"></textarea>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="button" [disabled]="saving" (click)="review(subject)">Enregistrer</button>
+      </div>
+    </mat-card>
+  </section>
+
+  <nav class="pagination" aria-label="Pagination" *ngIf="lastPage > 1">
+    <button mat-button type="button" [disabled]="page <= 1" (click)="loadSubjects(page - 1)">Précédent</button>
+    <span>Page {{ page }} sur {{ lastPage }}</span>
+    <button mat-button type="button" [disabled]="page >= lastPage" (click)="loadSubjects(page + 1)">Suivant</button>
+  </nav>
+
+  <mat-card class="editor" *ngIf="mode">
+    <mat-card-header>
+      <mat-card-title>
+        {{ mode === 'publish' ? 'Publier un sujet' : mode === 'edit' ? 'Modifier la proposition' : 'Proposer un sujet' }}
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form (ngSubmit)="saveForm()">
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Titre</mat-label>
+          <input matInput name="title" required [(ngModel)]="form.title">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Problématique</mat-label>
+          <textarea matInput name="problem_statement" rows="3" [(ngModel)]="form.problem_statement"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Objectifs</mat-label>
+          <textarea matInput name="objectives" rows="3" [(ngModel)]="form.objectives"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Mots-clés (séparés par des virgules)</mat-label>
+          <input matInput name="keywords" [(ngModel)]="form.keywords">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="wide">
+          <mat-label>Informations complémentaires</mat-label>
+          <textarea matInput name="additional_information" rows="2" [(ngModel)]="form.additional_information"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" *ngIf="mode === 'publish'">
+          <mat-label>Département</mat-label>
+          <mat-select name="department_id" required [(ngModel)]="departmentId">
+            <mat-option *ngFor="let department of departments" [value]="department.id">
+              {{ department.name }} ({{ department.code }})
+            </mat-option>
+          </mat-select>
+          <mat-hint>Le serveur vérifie que le département peut être géré par votre compte.</mat-hint>
+        </mat-form-field>
+        <p class="error" role="alert" *ngIf="mode === 'publish' && departmentLookupError">
+          Impossible de charger les départements : {{ departmentLookupError }}
+        </p>
+        <div class="form-actions">
+          <button mat-button type="button" (click)="closeForm()" [disabled]="saving">Annuler</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving || !form.title.trim()">
+            {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</main>

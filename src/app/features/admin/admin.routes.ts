@@ -41,6 +41,14 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.ArchivesAdminComponent
           ),
       },
+      {
+          path: 'imports',
+          loadComponent: () =>
+            import('./pages/imports/admin-imports.component').then(
+              (m) => m.AdminImportsComponent
+            ),
+          title: 'Imports CSV',
+      },
     ],
   },
 ];

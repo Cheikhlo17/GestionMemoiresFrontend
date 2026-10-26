@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -11,11 +13,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { AuthService } from '../../../../core/services/auth.service';
 import { Thesis, ThesisStatus } from '../../../../core/models/thesis.model';
 import { ThesisService } from '../../../../core/services/thesis.service';
+import { ThesisCorrectionService } from '../../../../core/services/thesis-correction.service';
+import {
+  CreateThesisCorrectionPayload,
+  ThesisCorrection,
+  ThesisCorrectionPriority,
+  ThesisCorrectionStatus,
+} from '../../../../core/models/thesis-correction.model';
 
 import {
   StatusChangeDialogComponent,
@@ -59,10 +69,12 @@ export function isThesisOwner(
     MatButtonModule,
     MatIconModule,
     MatTabsModule,
+    RouterLink,
     MatListModule,
     MatDividerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatDialogModule,
     UiLabelPipe,
   ],
@@ -73,6 +85,7 @@ export class ThesisDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly thesisService = inject(ThesisService);
+  private readonly correctionService = inject(ThesisCorrectionService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -83,6 +96,19 @@ export class ThesisDetailComponent implements OnInit {
   readonly isUploading = signal(false);
   readonly isCommenting = signal(false);
   readonly selectedFile = signal<File | null>(null);
+  readonly corrections = signal<ThesisCorrection[]>([]);
+  readonly correctionsLoading = signal(false);
+  readonly correctionsError = signal('');
+  readonly isSavingCorrection = signal(false);
+  readonly isUpdatingCorrection = signal(false);
+  readonly correctionForm = this.fb.group({
+    thesis_version_id: [null as number | null, Validators.required],
+    remark: ['', Validators.required],
+    page_number: [null as number | null, Validators.min(1)],
+    section: [''],
+    anchor: [''],
+    priority: ['medium' as ThesisCorrectionPriority, Validators.required],
+  });
 
   readonly commentForm = this.fb.nonNullable.group({
     content: ['', [Validators.required, Validators.maxLength(3000)]],
@@ -100,6 +126,9 @@ export class ThesisDetailComponent implements OnInit {
       next: (res) => {
         this.thesis.set(res.data);
         this.isLoading.set(false);
+        if (this.isCorrectionParticipant(res.data.id)) {
+          this.loadCorrections(res.data.id);
+        }
       },
       error: () => this.isLoading.set(false),
     });
@@ -111,6 +140,107 @@ export class ThesisDetailComponent implements OnInit {
       this.thesis()?.student.id,
       this.authService.hasRole('student')
     );
+  }
+
+  get isAssignedSupervisor(): boolean {
+    const thesis = this.thesis();
+    return (
+      this.authService.hasRole('supervisor') &&
+      !!thesis?.supervisor &&
+      thesis.supervisor.id === this.authService.currentUser()?.id
+    );
+  }
+
+  private isCorrectionParticipant(_thesisId: number): boolean {
+    return this.isOwner || this.isAssignedSupervisor;
+  }
+
+  private loadCorrections(thesisId: number): void {
+    this.correctionsLoading.set(true);
+    this.correctionsError.set('');
+    this.correctionService.list(thesisId).subscribe({
+      next: (response) => {
+        this.corrections.set(response.data);
+        this.correctionsLoading.set(false);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.correctionsError.set(this.errorText(error));
+        this.correctionsLoading.set(false);
+      },
+    });
+  }
+
+  createCorrection(): void {
+    if (this.correctionForm.invalid || this.isSavingCorrection()) {
+      this.correctionForm.markAllAsTouched();
+      return;
+    }
+    const thesis = this.thesis();
+    if (!thesis) return;
+
+    const value = this.correctionForm.getRawValue();
+    const payload: CreateThesisCorrectionPayload = {
+      thesis_version_id: value.thesis_version_id!,
+      remark: value.remark!.trim(),
+      priority: value.priority!,
+    };
+    if (value.page_number) payload.page_number = value.page_number;
+    if (value.section?.trim()) payload.section = value.section.trim();
+    if (value.anchor?.trim()) payload.anchor = value.anchor.trim();
+
+    this.isSavingCorrection.set(true);
+    this.correctionsError.set('');
+    this.correctionService.create(thesis.id, payload).subscribe({
+      next: (response) => {
+        this.snackBar.open(response.message || 'Correction ajoutée.', 'Fermer', {
+          duration: 4000,
+        });
+        this.correctionForm.reset({ priority: 'medium' });
+        this.isSavingCorrection.set(false);
+        this.loadCorrections(thesis.id);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.correctionsError.set(this.errorText(error));
+        this.isSavingCorrection.set(false);
+      },
+    });
+  }
+
+  changeCorrectionStatus(
+    correction: ThesisCorrection,
+    status: ThesisCorrectionStatus
+  ): void {
+    const thesis = this.thesis();
+    if (!thesis) return;
+    this.correctionsError.set('');
+    if (this.isUpdatingCorrection()) return;
+    this.isUpdatingCorrection.set(true);
+    this.correctionService.updateStatus(thesis.id, correction.id, status).subscribe({
+      next: (response) => {
+        this.snackBar.open(response.message || 'Statut de correction mis à jour.', 'Fermer', {
+          duration: 4000,
+        });
+        this.isUpdatingCorrection.set(false);
+        this.loadCorrections(thesis.id);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.correctionsError.set(this.errorText(error));
+        this.isUpdatingCorrection.set(false);
+      },
+    });
+  }
+
+  correctionVersionLabel(versionId: number): string {
+    const version = this.thesis()?.versions.find((item) => item.id === versionId);
+    return version
+      ? `v${version.version_number} — ${version.file_name}`
+      : `Version ${versionId}`;
+  }
+
+  private errorText(error: HttpErrorResponse): string {
+    const errors = error.error?.errors as Record<string, string[]> | undefined;
+    const first = errors ? Object.values(errors).flat()[0] : undefined;
+    return first || error.error?.message || 'Une erreur est survenue. Réessayez.';
   }
 
   get canAssignSupervisor(): boolean {

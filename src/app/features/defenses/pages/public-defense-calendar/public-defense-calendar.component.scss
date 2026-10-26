@@ -1,0 +1,43 @@
+.calendar-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.calendar-page h1 {
+  margin-bottom: 0.35rem;
+}
+
+.calendar-page header p {
+  color: #5f6368;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filters mat-form-field {
+  flex: 1 1 12rem;
+}
+
+.events {
+  display: grid;
+  gap: 1rem;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty {
+  padding: 2rem;
+  text-align: center;
+}

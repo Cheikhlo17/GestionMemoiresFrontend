@@ -27,6 +27,23 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'public-defense-calendar',
+    loadComponent: () =>
+      import('./layout/public-layout/public-layout.component').then(
+        (m) => m.PublicLayoutComponent
+      ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/defenses/pages/public-defense-calendar/public-defense-calendar.component').then(
+            (m) => m.PublicDefenseCalendarComponent
+          ),
+        title: 'Calendrier public des soutenances',
+      },
+    ],
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -76,6 +93,24 @@ export const routes: Routes = [
         path: 'theses',
         loadChildren: () =>
           import('./features/theses/theses.routes').then((m) => m.THESES_ROUTES),
+      },
+      {
+        path: 'subjects',
+        canActivate: [roleGuard(['administrator', 'head-of-department', 'supervisor', 'student'])],
+        loadComponent: () =>
+          import('./features/thesis-subjects/thesis-subjects.component').then(
+            (m) => m.ThesisSubjectsComponent
+          ),
+        title: 'Sujets de mémoire',
+      },
+      {
+        path: 'supervision-meetings',
+        canActivate: [roleGuard(['student', 'supervisor'])],
+        loadComponent: () =>
+          import('./features/supervision-meetings/supervision-meetings.component').then(
+            (m) => m.SupervisionMeetingsComponent
+          ),
+        title: 'Réunions d’encadrement',
       },
       {
         path: 'defenses',

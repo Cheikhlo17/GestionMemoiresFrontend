@@ -30,9 +30,9 @@ export interface ChangePasswordPayload {
 }
 
 export interface UpdateProfilePayload {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string | null;
   avatar?: File;
 }

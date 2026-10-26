@@ -1,0 +1,152 @@
+<main class="page">
+  <header class="page-header">
+    <div>
+      <h1>Réunions d’encadrement</h1>
+      <p>Les réunions et leurs actions sont visibles selon votre participation enregistrée par le serveur.</p>
+    </div>
+    <button mat-flat-button color="primary" type="button" (click)="showForm = !showForm">
+      {{ showForm ? 'Fermer' : 'Planifier une réunion' }}
+    </button>
+  </header>
+
+  <p class="error" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <mat-card *ngIf="showForm">
+    <mat-card-header><mat-card-title>Nouvelle réunion</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <form class="form-grid" (ngSubmit)="createMeeting()">
+        <mat-form-field appearance="outline">
+          <mat-label>Identifiant du mémoire</mat-label>
+          <input matInput type="number" min="1" name="thesis_id" required [(ngModel)]="meetingForm.thesis_id">
+          <mat-hint>L’accès et l’association au mémoire sont contrôlés par Laravel.</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Date et heure</mat-label>
+          <input matInput type="datetime-local" name="scheduled_at" required [(ngModel)]="meetingForm.scheduled_at">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Mode</mat-label>
+          <input matInput name="mode" required [(ngModel)]="meetingForm.mode">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Durée (minutes)</mat-label>
+          <input matInput type="number" min="1" max="480" name="duration" [(ngModel)]="meetingForm.duration_minutes">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Lieu (facultatif)</mat-label>
+          <input matInput name="location" [(ngModel)]="meetingForm.location">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Ordre du jour (facultatif)</mat-label>
+          <textarea matInput rows="2" name="agenda" [(ngModel)]="meetingForm.agenda"></textarea>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">Créer</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="loading" *ngIf="loading" aria-live="polite">
+    <mat-spinner diameter="36"></mat-spinner><span>Chargement des réunions…</span>
+  </div>
+  <p class="empty" *ngIf="!loading && meetings.length === 0">Aucune réunion accessible.</p>
+  <section class="meeting-list" *ngIf="!loading && meetings.length">
+    <mat-card *ngFor="let meeting of meetings">
+      <mat-card-header>
+        <mat-card-title>{{ meeting.thesis?.title || ('Mémoire ' + meeting.thesis_id) }}</mat-card-title>
+        <mat-card-subtitle>{{ meeting.scheduled_at | date:'medium' }} · {{ meeting.mode }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p *ngIf="meeting.location">Lieu : {{ meeting.location }}</p>
+        <p>Actions : {{ meeting.actions?.length ?? 0 }}</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button type="button" (click)="openMeeting(meeting)">Détails</button>
+      </mat-card-actions>
+    </mat-card>
+  </section>
+
+  <mat-card *ngIf="selectedMeeting as meeting" class="details">
+    <mat-card-header>
+      <mat-card-title>{{ meeting.thesis?.title || ('Mémoire ' + meeting.thesis_id) }}</mat-card-title>
+      <mat-card-subtitle>{{ meeting.scheduled_at | date:'fullDate' }} · {{ meeting.scheduled_at | date:'shortTime' }} · {{ meeting.mode }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="detail-actions">
+        <button mat-button type="button" (click)="closeMeeting()">Fermer</button>
+        <button mat-stroked-button type="button" (click)="editing = !editing">Modifier</button>
+        <button mat-stroked-button type="button" (click)="showActionForm = !showActionForm">Ajouter une action</button>
+      </div>
+
+      <form class="form-grid" *ngIf="editing" (ngSubmit)="updateMeeting()">
+        <mat-form-field appearance="outline">
+          <mat-label>Date et heure</mat-label>
+          <input matInput type="datetime-local" name="edit_scheduled_at" required [(ngModel)]="meetingForm.scheduled_at">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Mode</mat-label>
+          <input matInput name="edit_mode" required [(ngModel)]="meetingForm.mode">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Durée (minutes)</mat-label>
+          <input matInput type="number" min="1" max="480" name="edit_duration" [(ngModel)]="meetingForm.duration_minutes">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Lieu</mat-label>
+          <input matInput name="edit_location" [(ngModel)]="meetingForm.location">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Ordre du jour</mat-label>
+          <textarea matInput rows="2" name="edit_agenda" [(ngModel)]="meetingForm.agenda"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Compte rendu</mat-label>
+          <textarea matInput rows="2" name="minutes" [(ngModel)]="meetingForm.minutes"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Difficultés</mat-label>
+          <textarea matInput rows="2" name="difficulties" [(ngModel)]="meetingForm.difficulties"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Décisions</mat-label>
+          <textarea matInput rows="2" name="decisions" [(ngModel)]="meetingForm.decisions"></textarea>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">Enregistrer</button>
+      </form>
+
+      <form class="form-grid" *ngIf="showActionForm" (ngSubmit)="addAction()">
+        <mat-form-field appearance="outline">
+          <mat-label>Identifiant du responsable</mat-label>
+          <input matInput type="number" min="1" name="assigned_to" required [(ngModel)]="actionForm.assigned_to">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Description</mat-label>
+          <textarea matInput rows="2" name="description" required [(ngModel)]="actionForm.description"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Échéance</mat-label>
+          <input matInput type="datetime-local" name="due_at" required [(ngModel)]="actionForm.due_at">
+        </mat-form-field>
+        <p class="form-hint">Aucun annuaire des participants n’est fourni par le contrat; le serveur vérifie l’identifiant saisi.</p>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">Créer l’action</button>
+      </form>
+
+      <h3>Actions</h3>
+      <p *ngIf="!meeting.actions?.length" class="empty">Aucune action de suivi enregistrée.</p>
+      <div class="action-row" *ngFor="let action of meeting.actions">
+        <div>
+          <strong>{{ action.description }}</strong>
+          <p>Responsable : {{ action.assigned_to }} · Échéance : {{ action.due_at | date:'medium' }}</p>
+        </div>
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="actionStatuses[action.id]" [name]="'action_status_' + action.id">
+            <mat-option value="pending">En attente</mat-option>
+            <mat-option value="in_progress">En cours</mat-option>
+            <mat-option value="completed">Terminée</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-button type="button" [disabled]="saving" (click)="updateAction(action)">Enregistrer</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</main>

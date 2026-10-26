@@ -1,0 +1,157 @@
+<main class="page">
+  <header class="page-header">
+    <div>
+      <h1>Pré-soutenances</h1>
+      <p>Consultez les séances et leurs passages. Les autorisations finales sont vérifiées par le serveur.</p>
+    </div>
+    <button mat-flat-button color="primary" type="button" *ngIf="canCreate" (click)="showCreateForm = !showCreateForm">
+      {{ showCreateForm ? 'Fermer' : 'Créer une séance' }}
+    </button>
+  </header>
+
+  <p class="error" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <mat-card *ngIf="showCreateForm">
+    <mat-card-header><mat-card-title>Nouvelle séance</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <form class="form-grid" (ngSubmit)="createSession()">
+        <mat-form-field appearance="outline">
+          <mat-label>Département</mat-label>
+          <mat-select name="department_id" required [(ngModel)]="sessionForm.department_id">
+            <mat-option *ngFor="let department of departments" [value]="department.id">
+              {{ department.name }} ({{ department.code }})
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Lieu</mat-label>
+          <input matInput name="location" required [(ngModel)]="sessionForm.location">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Date et heure</mat-label>
+          <input matInput type="datetime-local" name="scheduled_at" required [(ngModel)]="sessionForm.scheduled_at">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Durée (minutes)</mat-label>
+          <input matInput type="number" min="1" max="480" name="duration_minutes" [(ngModel)]="sessionForm.duration_minutes">
+        </mat-form-field>
+        <p class="form-hint" *ngIf="departmentLookupError" role="alert">
+          Impossible de charger les départements : {{ departmentLookupError }}
+        </p>
+        <p class="form-hint">Votre compte sera désigné comme responsable. L’API ne fournit pas ici de recherche des autres responsables possibles.</p>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">
+          {{ saving ? 'Création…' : 'Créer la séance' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="loading" *ngIf="loading" aria-live="polite">
+    <mat-spinner diameter="36"></mat-spinner><span>Chargement des séances…</span>
+  </div>
+  <p class="empty" *ngIf="!loading && sessions.length === 0">Aucune séance accessible.</p>
+
+  <section class="session-list" *ngIf="!loading && sessions.length">
+    <mat-card *ngFor="let session of sessions">
+      <mat-card-header>
+        <mat-card-title>{{ session.location }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ session.department?.name || ('Département ' + session.department_id) }}
+          · {{ session.scheduled_at | date:'medium' }} · {{ session.status }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Responsable : {{ session.responsible?.full_name || ('Utilisateur ' + session.responsible_user_id) }}</p>
+        <p>Passages : {{ session.passages?.length ?? 0 }}</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button type="button" (click)="openSession(session)">Détails</button>
+      </mat-card-actions>
+    </mat-card>
+  </section>
+
+  <mat-card *ngIf="selectedSession as session" class="details">
+    <mat-card-header>
+      <mat-card-title>Séance #{{ session.id }} — {{ session.location }}</mat-card-title>
+      <mat-card-subtitle>{{ session.scheduled_at | date:'fullDate' }} · {{ session.scheduled_at | date:'shortTime' }} · {{ session.status }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="detail-actions">
+        <button mat-button type="button" (click)="closeDetails()">Fermer</button>
+        <ng-container *ngIf="canManage(session)">
+          <button mat-stroked-button type="button" (click)="showEditForm = !showEditForm">Modifier les détails</button>
+          <button mat-stroked-button type="button" (click)="showPassageForm = !showPassageForm">Ajouter un passage</button>
+          <button mat-button type="button" [disabled]="saving || session.status === 'completed' || session.status === 'cancelled'" (click)="setSessionStatus('completed')">Clôturer</button>
+          <button mat-button type="button" [disabled]="saving || session.status === 'completed' || session.status === 'cancelled'" (click)="setSessionStatus('cancelled')">Annuler la séance</button>
+        </ng-container>
+      </div>
+
+      <form class="form-grid" *ngIf="showEditForm" (ngSubmit)="updateSession()">
+        <mat-form-field appearance="outline">
+          <mat-label>Lieu</mat-label>
+          <input matInput name="edit_location" required [(ngModel)]="sessionForm.location">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Date et heure</mat-label>
+          <input matInput type="datetime-local" name="edit_scheduled_at" required [(ngModel)]="sessionForm.scheduled_at">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Durée (minutes)</mat-label>
+          <input matInput type="number" min="1" max="480" name="edit_duration" [(ngModel)]="sessionForm.duration_minutes">
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">Enregistrer</button>
+      </form>
+
+      <form class="form-grid" *ngIf="showPassageForm" (ngSubmit)="addPassage()">
+        <mat-form-field appearance="outline">
+          <mat-label>Identifiant du mémoire</mat-label>
+          <input matInput type="number" min="1" name="thesis_id" required [(ngModel)]="passageForm.thesis_id">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Position</mat-label>
+          <input matInput type="number" min="1" name="position" required [(ngModel)]="passageForm.position">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Date et heure du passage</mat-label>
+          <input matInput type="datetime-local" name="passage_scheduled_at" required [(ngModel)]="passageForm.scheduled_at">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Durée (minutes)</mat-label>
+          <input matInput type="number" min="1" max="240" name="passage_duration" [(ngModel)]="passageForm.duration_minutes">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Observations (facultatif)</mat-label>
+          <textarea matInput rows="2" name="passage_observations" [(ngModel)]="passageForm.observations"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Recommandations (facultatif)</mat-label>
+          <textarea matInput rows="2" name="passage_recommendations" [(ngModel)]="passageForm.recommendations"></textarea>
+        </mat-form-field>
+        <p class="form-hint">Le serveur vérifiera que le mémoire appartient au département de la séance.</p>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">Ajouter le passage</button>
+      </form>
+
+      <h3>Passages</h3>
+      <p class="empty" *ngIf="!session.passages?.length">Aucun passage dans cette séance.</p>
+      <div class="passage-list" *ngFor="let passage of session.passages">
+        <div>
+          <strong>{{ passage.thesis?.title || ('Mémoire ' + passage.thesis_id) }}</strong>
+          <span> · Position {{ passage.position }} · {{ passage.scheduled_at | date:'short' }} · {{ passage.result }}</span>
+          <p *ngIf="passage.observations">{{ passage.observations }}</p>
+          <p *ngIf="passage.recommendations"><strong>Recommandations :</strong> {{ passage.recommendations }}</p>
+        </div>
+        <div class="passage-actions" *ngIf="canManage(session)">
+          <mat-form-field appearance="outline">
+            <mat-label>Résultat</mat-label>
+            <mat-select [(ngModel)]="passageResult[passage.id]" [name]="'result_' + passage.id">
+              <mat-option value="pending">En attente</mat-option>
+              <mat-option value="ready">Prêt</mat-option>
+              <mat-option value="needs_revision">À revoir</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-button type="button" [disabled]="saving" (click)="updatePassage(passage)">Enregistrer</button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</main>

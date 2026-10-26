@@ -13,6 +13,10 @@
       </div>
 
       <div class="thesis-detail-page__actions">
+        <a mat-stroked-button routerLink="/supervision-meetings" [queryParams]="{ thesis_id: t.id }"
+          *ngIf="authService.hasRole('student', 'supervisor')">
+          Réunions d’encadrement
+        </a>
         @if (canAssignSupervisor) {
           <button
             mat-stroked-button
@@ -137,6 +141,123 @@
               </p>
             }
           </mat-list>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Corrections">
+        <div class="tab-content">
+          @if (isAssignedSupervisor && t.versions.length > 0) {
+            <form
+              [formGroup]="correctionForm"
+              (ngSubmit)="createCorrection()"
+              class="correction-form"
+            >
+              <mat-form-field appearance="outline">
+                <mat-label>Version concernée</mat-label>
+                <mat-select formControlName="thesis_version_id" required>
+                  @for (version of t.versions; track version.id) {
+                    <mat-option [value]="version.id">
+                      v{{ version.version_number }} — {{ version.file_name }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="correction-form__wide">
+                <mat-label>Correction demandée</mat-label>
+                <textarea matInput rows="3" formControlName="remark" required></textarea>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Priorité</mat-label>
+                <mat-select formControlName="priority">
+                  <mat-option value="low">Basse</mat-option>
+                  <mat-option value="medium">Moyenne</mat-option>
+                  <mat-option value="high">Haute</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Numéro de page</mat-label>
+                <input matInput type="number" min="1" formControlName="page_number">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Section (facultatif)</mat-label>
+                <input matInput formControlName="section">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Repère (facultatif)</mat-label>
+                <input matInput formControlName="anchor">
+              </mat-form-field>
+
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="isSavingCorrection() || correctionForm.invalid"
+              >
+                {{ isSavingCorrection() ? 'Enregistrement…' : 'Ajouter la correction' }}
+              </button>
+            </form>
+          }
+
+          @if (isAssignedSupervisor && t.versions.length === 0) {
+            <p class="empty-state">Déposez une version du mémoire avant de créer une correction.</p>
+          }
+
+          @if (correctionsError()) {
+            <p class="error-message" role="alert">{{ correctionsError() }}</p>
+          }
+
+          @if (correctionsLoading()) {
+            <p aria-live="polite">Chargement des corrections…</p>
+          } @else {
+            <mat-list>
+              @for (correction of corrections(); track correction.id) {
+                <mat-list-item class="correction-item">
+                  <div matListItemTitle>
+                    {{ correction.status | uiLabel }} · {{ correction.priority | uiLabel }}
+                  </div>
+                  <div matListItemLine>
+                    {{ correctionVersionLabel(correction.thesis_version_id) }}
+                    @if (correction.page_number) { · Page {{ correction.page_number }} }
+                    @if (correction.section) { · {{ correction.section }} }
+                  </div>
+                  <div matListItemLine>{{ correction.remark }}</div>
+                  <div matListItemLine>{{ correction.created_at | date: 'medium' }}</div>
+                  @if (isOwner && correction.status === 'to_correct') {
+                    <button
+                      mat-button
+                      type="button"
+                      [disabled]="isUpdatingCorrection()"
+                      (click)="changeCorrectionStatus(correction, 'corrected')"
+                    >Marquer comme corrigée</button>
+                  }
+                  @if (isAssignedSupervisor && correction.status === 'corrected') {
+                    <button
+                      mat-button
+                      type="button"
+                      [disabled]="isUpdatingCorrection()"
+                      (click)="changeCorrectionStatus(correction, 'validated')"
+                    >Valider</button>
+                    <button
+                      mat-button
+                      type="button"
+                      [disabled]="isUpdatingCorrection()"
+                      (click)="changeCorrectionStatus(correction, 'to_correct')"
+                    >Renvoyer à corriger</button>
+                  }
+                </mat-list-item>
+                <mat-divider></mat-divider>
+              } @empty {
+                @if (!correctionsError()) {
+                  <p class="empty-state">Aucune correction pour ce mémoire.</p>
+                }
+              }
+            </mat-list>
+          }
         </div>
       </mat-tab>
 

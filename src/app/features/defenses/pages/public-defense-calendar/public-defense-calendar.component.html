@@ -1,0 +1,52 @@
+<main class="calendar-page">
+  <header>
+    <h1>Calendrier public des soutenances</h1>
+    <p>Seules les soutenances rendues publiques par l’établissement sont affichées.</p>
+  </header>
+
+  <form class="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Du</mat-label>
+      <input matInput type="date" name="from" required [(ngModel)]="from">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Au</mat-label>
+      <input matInput type="date" name="to" required [(ngModel)]="to">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Département (identifiant facultatif)</mat-label>
+      <input matInput type="number" min="1" name="department_id" [(ngModel)]="departmentId">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Salle (identifiant facultatif)</mat-label>
+      <input matInput type="number" min="1" name="room_id" [(ngModel)]="roomId">
+    </mat-form-field>
+    <button mat-flat-button color="primary" type="submit" [disabled]="loading">Rechercher</button>
+  </form>
+
+  <p class="error" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+  <div class="loading" *ngIf="loading" aria-live="polite">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Chargement du calendrier…</span>
+  </div>
+  <p class="empty" *ngIf="!loading && hasSearched && !events.length">
+    Aucune soutenance publique pour cette période.
+  </p>
+
+  <section class="events" *ngIf="!loading && events.length">
+    <mat-card *ngFor="let event of events">
+      <mat-card-header>
+        <mat-card-title>{{ event.title }}</mat-card-title>
+        <mat-card-subtitle>{{ event.scheduled_at | date:'fullDate' }} · {{ event.scheduled_at | date:'shortTime' }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p *ngIf="event.department?.name"><strong>Département :</strong> {{ event.department?.name }}</p>
+        <p *ngIf="event.program?.name"><strong>Programme :</strong> {{ event.program?.name }}</p>
+        <p *ngIf="event.room?.name">
+          <strong>Salle :</strong> {{ event.room?.name }}
+          <span *ngIf="event.room?.building"> · {{ event.room?.building }}</span>
+        </p>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</main>

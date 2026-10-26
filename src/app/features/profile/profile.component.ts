@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { User } from '../../core/models/user.model';
 import { AuthService } from '../../core/services/auth.service';
+import { UpdateProfilePayload } from '../../core/interfaces/auth.interface';
 import { UiLabelPipe } from '../../shared/pipes/ui-label.pipe';
 import { passwordMatchValidator } from '../../shared/validators/password-match.validator';
 import { strongPasswordValidator } from '../../shared/validators/strong-password.validator';
@@ -43,10 +45,10 @@ export class ProfileComponent implements OnInit {
   readonly selectedAvatar = signal<File | null>(null);
 
   readonly profileForm = this.fb.nonNullable.group({
-    first_name: ['', [Validators.required, Validators.maxLength(100)]],
-    last_name: ['', [Validators.required, Validators.maxLength(100)]],
-    email: ['', [Validators.required, Validators.email]],
-    phone: [''],
+    first_name: ['', [Validators.maxLength(100)]],
+    last_name: ['', [Validators.maxLength(100)]],
+    email: ['', [Validators.email, Validators.maxLength(255)]],
+    phone: ['', [Validators.maxLength(30)]],
   });
 
   readonly form = this.fb.nonNullable.group(
@@ -112,24 +114,30 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
+    const payload = this.buildProfilePayload();
+    const avatar = this.selectedAvatar();
+    if (avatar) payload.avatar = avatar;
+    if (!Object.keys(payload).length) {
+      this.profileSuccess.set('Aucune modification à enregistrer.');
+      return;
+    }
+
     this.isUpdatingProfile.set(true);
     this.profileError.set(null);
     this.profileSuccess.set(null);
 
     this.authService
-      .updateProfile({
-        ...this.profileForm.getRawValue(),
-        avatar: this.selectedAvatar() ?? undefined,
-      })
+      .updateProfile(payload)
       .subscribe({
-        next: () => {
+        next: (response) => {
           this.isUpdatingProfile.set(false);
           this.selectedAvatar.set(null);
+          this.patchProfileForm(response.data);
           this.profileSuccess.set('Vos informations ont été mises à jour.');
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
           this.isUpdatingProfile.set(false);
-          this.profileError.set('Impossible de mettre à jour le profil. Vérifiez les informations saisies.');
+          this.profileError.set(this.errorText(error));
         },
       });
   }
@@ -151,10 +159,32 @@ export class ProfileComponent implements OnInit {
         this.form.reset();
         this.successMessage.set('Votre mot de passe a été modifié.');
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set('Impossible de modifier le mot de passe. Vérifiez votre mot de passe actuel.');
+        this.errorMessage.set(this.errorText(error));
       },
     });
+  }
+
+  private errorText(error: HttpErrorResponse): string {
+    const errors = error.error?.errors as Record<string, string[]> | undefined;
+    const first = errors ? Object.values(errors).flat()[0] : undefined;
+    return first || error.error?.message || 'Une erreur est survenue. Réessayez.';
+  }
+
+  private buildProfilePayload(): UpdateProfilePayload {
+    const values = this.profileForm.getRawValue();
+    const current = this.user();
+    const payload: UpdateProfilePayload = {};
+    const firstName = values.first_name.trim();
+    const lastName = values.last_name.trim();
+    const email = values.email.trim();
+    const phone = values.phone.trim();
+
+    if (firstName && firstName !== current?.first_name) payload.first_name = firstName;
+    if (lastName && lastName !== current?.last_name) payload.last_name = lastName;
+    if (email && email !== current?.email) payload.email = email;
+    if (phone !== (current?.phone ?? '')) payload.phone = phone || null;
+    return payload;
   }
 }

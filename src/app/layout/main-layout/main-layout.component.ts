@@ -47,7 +47,11 @@ export class MainLayoutComponent {
     { label: 'My Students', icon: 'groups', route: '/supervisor', roles: ['supervisor'] },
     { label: 'My Defenses', icon: 'gavel', route: '/jury', roles: ['jury-member'] },
     { label: 'Theses', icon: 'article', route: '/theses', roles: [] },
+    { label: 'Sujets de mémoire', icon: 'topic', route: '/subjects', roles: ['administrator', 'head-of-department', 'supervisor', 'student'] },
     { label: 'Defenses', icon: 'event', route: '/defenses', roles: [] },
+    { label: 'Pré-soutenances', icon: 'event_note', route: '/defenses/pre-sessions', roles: ['administrator', 'head-of-department', 'supervisor', 'student'] },
+    { label: 'Réunions d’encadrement', icon: 'groups', route: '/supervision-meetings', roles: ['student', 'supervisor'] },
+    { label: 'Calendrier public', icon: 'calendar_month', route: '/public-defense-calendar', roles: [] },
     { label: 'Archives', icon: 'local_library', route: '/archives', roles: [] },
     { label: 'Administration', icon: 'admin_panel_settings', route: '/admin', roles: ['administrator'] },
   ];

@@ -96,10 +96,10 @@ export class AuthService {
 
   updateProfile(payload: UpdateProfilePayload): Observable<ApiSuccessResponse<User>> {
     const formData = new FormData();
-    formData.append('first_name', payload.first_name);
-    formData.append('last_name', payload.last_name);
-    formData.append('email', payload.email);
-    formData.append('phone', payload.phone);
+    if (payload.first_name !== undefined) formData.append('first_name', payload.first_name);
+    if (payload.last_name !== undefined) formData.append('last_name', payload.last_name);
+    if (payload.email !== undefined) formData.append('email', payload.email);
+    if (payload.phone !== undefined) formData.append('phone', payload.phone ?? '');
     if (payload.avatar) {
       formData.append('avatar', payload.avatar);
     }

@@ -17,5 +17,6 @@ export class AdminOverviewComponent {
     { label: 'Années académiques', route: 'academic-years' },
     { label: 'Utilisateurs', route: 'users' },
     { label: 'Archives', route: 'archives' },
+    { label: 'Imports CSV', route: 'imports' },
   ];
 }

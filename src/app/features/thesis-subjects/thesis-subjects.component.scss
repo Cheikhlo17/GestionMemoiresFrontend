@@ -1,0 +1,81 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-header,
+.header-actions,
+.filters,
+.form-actions,
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.page-header p {
+  margin: 0.35rem 0 0;
+  color: #5f6368;
+}
+
+.filters mat-form-field {
+  width: min(100%, 18rem);
+}
+
+.subject-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.subject-list mat-card-content {
+  padding-top: 1rem;
+}
+
+.subject-list p {
+  white-space: pre-wrap;
+}
+
+.review-form,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem 1rem;
+}
+
+.wide {
+  width: 100%;
+}
+
+.editor mat-card-content {
+  padding-top: 1rem;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+@media (max-width: 640px) {
+  .page-header,
+  .filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

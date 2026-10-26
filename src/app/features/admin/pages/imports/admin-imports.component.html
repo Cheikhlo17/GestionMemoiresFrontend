@@ -1,0 +1,73 @@
+<main class="page">
+  <header>
+    <h1>Imports administratifs CSV</h1>
+    <p>Les lignes sont prévisualisées par le serveur. Aucune donnée n’est importée avant confirmation.</p>
+  </header>
+
+  <mat-card>
+    <mat-card-content>
+      <div class="controls">
+        <mat-form-field appearance="outline">
+          <mat-label>Type d’import</mat-label>
+          <mat-select [(ngModel)]="type" [disabled]="previewing || confirming" (selectionChange)="onImportTypeChange()">
+            <mat-option *ngFor="let item of importTypes" [value]="item.value">{{ item.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button type="button" (click)="downloadTemplate()" [disabled]="loadingTemplate">
+          {{ loadingTemplate ? 'Téléchargement…' : 'Télécharger le modèle CSV' }}
+        </button>
+      </div>
+
+      <label class="file-picker">
+        <span>Fichier CSV (5 Mo et 5 000 lignes maximum; le nombre de lignes est contrôlé par le serveur)</span>
+        <input #csvFile type="file" accept=".csv,text/csv" (change)="onFileSelected($event)" [disabled]="previewing || confirming">
+      </label>
+      <p *ngIf="file">Fichier sélectionné : <strong>{{ file.name }}</strong> ({{ file.size | number }} octets)</p>
+
+      <div class="actions">
+        <button mat-flat-button color="primary" type="button" (click)="runPreview()" [disabled]="!file || previewing || confirming">
+          {{ previewing ? 'Analyse…' : 'Prévisualiser' }}
+        </button>
+        <button mat-flat-button color="accent" type="button" (click)="confirmImport()" [disabled]="!preview || confirming || previewing || countValid() === 0">
+          {{ confirming ? 'Import…' : 'Confirmer l’import définitif' }}
+        </button>
+      </div>
+
+      <p class="error" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <div class="loading" *ngIf="previewing || confirming" aria-live="polite">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>{{ previewing ? 'Prévisualisation demandée au serveur…' : 'Import en cours…' }}</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <section *ngIf="preview as result" class="preview" aria-live="polite">
+    <h2>Résultat de la prévisualisation</h2>
+    <div class="counts">
+      <span>Lignes valides : <strong>{{ countValid() }}</strong></span>
+      <span>Doublons : <strong>{{ countDuplicates() }}</strong></span>
+      <span>Lignes invalides : <strong>{{ countInvalid() }}</strong></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>Lignes analysées par le serveur</caption>
+        <thead>
+          <tr><th scope="col">Ligne</th><th scope="col">État</th><th scope="col">Données</th><th scope="col">Erreurs</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of result.rows">
+            <td>{{ row.line }}</td>
+            <td>{{ row.duplicate ? 'Doublon' : row.valid ? 'Valide' : 'Invalide' }}</td>
+            <td><code>{{ row.data | json }}</code></td>
+            <td>
+              <ul *ngIf="rowErrors(row).length; else noErrors">
+                <li *ngFor="let message of rowErrors(row)">{{ message }}</li>
+              </ul>
+              <ng-template #noErrors>—</ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

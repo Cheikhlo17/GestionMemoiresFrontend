@@ -1,6 +1,16 @@
 import { Routes } from '@angular/router';
+import { roleGuard } from '../../core/guards/role.guard';
 
 export const DEFENSES_ROUTES: Routes = [
+  {
+    path: 'pre-sessions',
+    canActivate: [roleGuard(['administrator', 'head-of-department', 'supervisor', 'student'])],
+    loadComponent: () =>
+      import('./pages/pre-defense-sessions/pre-defense-sessions.component').then(
+        (m) => m.PreDefenseSessionsComponent
+      ),
+    title: 'Pré-soutenances',
+  },
   {
     path: '',
     loadComponent: () =>
