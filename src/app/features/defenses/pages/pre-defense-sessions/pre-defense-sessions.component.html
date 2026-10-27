@@ -136,14 +136,14 @@
       <div class="passage-list" *ngFor="let passage of session.passages">
         <div>
           <strong>{{ passage.thesis?.title || ('Mémoire ' + passage.thesis_id) }}</strong>
-          <span> · Position {{ passage.position }} · {{ passage.scheduled_at | date:'short' }} · {{ passage.result }}</span>
+          <span> · Position {{ passage.position }} · {{ passage.scheduled_at | date:'short' }} · {{ outcomeLabel(passage.outcome) }}</span>
           <p *ngIf="passage.observations">{{ passage.observations }}</p>
           <p *ngIf="passage.recommendations"><strong>Recommandations :</strong> {{ passage.recommendations }}</p>
         </div>
         <div class="passage-actions" *ngIf="canManage(session)">
           <mat-form-field appearance="outline">
             <mat-label>Résultat</mat-label>
-            <mat-select [(ngModel)]="passageResult[passage.id]" [name]="'result_' + passage.id">
+            <mat-select [(ngModel)]="passageOutcome[passage.id]" [name]="'outcome_' + passage.id">
               <mat-option value="pending">En attente</mat-option>
               <mat-option value="ready">Prêt</mat-option>
               <mat-option value="needs_revision">À revoir</mat-option>

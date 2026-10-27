@@ -221,7 +221,7 @@
                     {{ correction.status | uiLabel }} · {{ correction.priority | uiLabel }}
                   </div>
                   <div matListItemLine>
-                    {{ correctionVersionLabel(correction.thesis_version_id) }}
+                    {{ correctionVersionLabel(correctionVersionId(correction)) }}
                     @if (correction.page_number) { · Page {{ correction.page_number }} }
                     @if (correction.section) { · {{ correction.section }} }
                   </div>

@@ -40,11 +40,11 @@
         <mat-card-subtitle>{{ event.scheduled_at | date:'fullDate' }} · {{ event.scheduled_at | date:'shortTime' }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <p *ngIf="event.department?.name"><strong>Département :</strong> {{ event.department?.name }}</p>
-        <p *ngIf="event.program?.name"><strong>Programme :</strong> {{ event.program?.name }}</p>
-        <p *ngIf="event.room?.name">
-          <strong>Salle :</strong> {{ event.room?.name }}
-          <span *ngIf="event.room?.building"> · {{ event.room?.building }}</span>
+        <p *ngIf="event.department"><strong>Département :</strong> {{ event.department }}</p>
+        <p *ngIf="event.program"><strong>Programme :</strong> {{ event.program }}</p>
+        <p *ngIf="event.room">
+          <strong>Salle :</strong> {{ event.room }}
+          <span *ngIf="event.room_building"> · {{ event.room_building }}</span>
         </p>
       </mat-card-content>
     </mat-card>

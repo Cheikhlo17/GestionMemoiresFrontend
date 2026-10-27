@@ -1,10 +1,15 @@
 export type ThesisCorrectionStatus = 'to_correct' | 'corrected' | 'validated';
 export type ThesisCorrectionPriority = 'low' | 'medium' | 'high';
 
+export interface ThesisVersionRef {
+  id: number;
+  version_number: number;
+}
+
 export interface ThesisCorrection {
   id: number;
   thesis_id: number;
-  thesis_version_id: number;
+  thesis_version: ThesisVersionRef | number;
   remark: string;
   page_number: number | null;
   section: string | null;

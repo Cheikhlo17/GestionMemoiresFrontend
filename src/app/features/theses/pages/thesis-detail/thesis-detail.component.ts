@@ -232,9 +232,25 @@ export class ThesisDetailComponent implements OnInit {
 
   correctionVersionLabel(versionId: number): string {
     const version = this.thesis()?.versions.find((item) => item.id === versionId);
-    return version
-      ? `v${version.version_number} — ${version.file_name}`
-      : `Version ${versionId}`;
+    if (!version) {
+      const correction = this.corrections().find((item) => {
+        const nested = item.thesis_version;
+        if (typeof nested === 'object' && nested !== null) {
+          return nested.id === versionId;
+        }
+        return nested === versionId;
+      });
+      if (correction && typeof correction.thesis_version === 'object' && correction.thesis_version) {
+        return `Version ${correction.thesis_version.version_number}`;
+      }
+      return `Version #${versionId}`;
+    }
+    return version ? `v${version.version_number} — ${version.file_name}` : `Version ${versionId}`;
+  }
+
+  correctionVersionId(correction: ThesisCorrection): number {
+    const nested = correction.thesis_version;
+    return typeof nested === 'object' && nested !== null ? nested.id : nested;
   }
 
   private errorText(error: HttpErrorResponse): string {

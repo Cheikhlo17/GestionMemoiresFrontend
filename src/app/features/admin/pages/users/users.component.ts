@@ -75,7 +75,7 @@ export class UsersComponent implements OnInit {
   toggleActive(user: UserListItem): void {
     this.adminService.toggleUserActive(user.id).subscribe({
       next: (res) => {
-        this.snackBar.open(res.message, 'Fermer', { duration: 3000 });
+        this.snackBar.open(res.message ?? 'Statut mis à jour.', 'Fermer', { duration: 3000 });
         this.load();
       },
       error: (err) => {

@@ -16,10 +16,32 @@
         <textarea matInput rows="5" formControlName="abstract" placeholder="Résumé"></textarea>
       </mat-form-field>
 
+      <mat-form-field appearance="outline">
+        <mat-label>Sujet accepté</mat-label>
+        <mat-select formControlName="thesis_subject_id" required>
+          @for (subject of acceptedSubjects(); track subject.id) {
+            <mat-option [value]="subject.id">{{ subject.title }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.thesis_subject_id.hasError('required') && form.controls.thesis_subject_id.touched) {
+          <mat-error>Choisissez un sujet accepté.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (isLoadingSubjects()) {
+        <p role="status">Chargement de vos sujets acceptés…</p>
+      } @else if (subjectLoadError()) {
+        <p class="error-state" role="alert">{{ subjectLoadError() }}</p>
+      } @else if (acceptedSubjects().length === 0) {
+        <p class="empty-state" role="status">
+          Vous n’avez aucun sujet accepté. <a routerLink="/subjects">Proposez d’abord un sujet de mémoire.</a>
+        </p>
+      }
+
       <div class="thesis-form__row">
         <mat-form-field appearance="outline">
           <mat-label>Département</mat-label>
-          <mat-select formControlName="department_id">
+          <mat-select formControlName="department_id" [disabled]="!!form.controls.thesis_subject_id.value">
             @for (dept of departments(); track dept.id) {
               <mat-option [value]="dept.id">{{ dept.name }}</mat-option>
             }
@@ -47,7 +69,12 @@
 
       <div class="thesis-form__actions">
         <a mat-button routerLink="/theses">Annuler</a>
-        <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="isSubmitting() || isLoadingSubjects() || acceptedSubjects().length === 0 || !!subjectLoadError()"
+        >
           Créer le brouillon
         </button>
       </div>

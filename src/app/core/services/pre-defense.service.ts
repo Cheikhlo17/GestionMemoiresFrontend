@@ -6,7 +6,7 @@ import { ApiSuccessResponse } from '../models/auth-response.model';
 import {
   PreDefensePassage,
   PreDefensePassagePayload,
-  PreDefensePassageResult,
+  PreDefensePassageOutcome,
   PreDefenseSession,
   PreDefenseSessionPayload,
 } from '../models/pre-defense.model';
@@ -59,7 +59,7 @@ export class PreDefenseService {
     sessionId: number,
     passageId: number,
     payload: {
-      result: PreDefensePassageResult;
+      outcome: PreDefensePassageOutcome;
       observations?: string;
       recommendations?: string;
     }

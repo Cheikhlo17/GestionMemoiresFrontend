@@ -16,4 +16,8 @@ export interface AdminImportPreview {
 export interface AdminImportResult {
   message?: string;
   imported?: number;
+  created_count?: number;
+  duplicate_count?: number;
+  updated_count?: number;
+  errors?: number;
 }

@@ -1,4 +1,4 @@
-export type PreDefensePassageResult = 'pending' | 'ready' | 'needs_revision';
+export type PreDefensePassageOutcome = 'pending' | 'ready' | 'needs_revision';
 
 export interface PreDefensePassage {
   id: number;
@@ -6,7 +6,7 @@ export interface PreDefensePassage {
   position: number;
   scheduled_at: string;
   duration_minutes: number;
-  result: PreDefensePassageResult;
+  outcome: PreDefensePassageOutcome;
   observations: string | null;
   recommendations: string | null;
   thesis?: { title: string };
@@ -21,7 +21,7 @@ export interface PreDefenseSession {
   duration_minutes: number;
   status: string;
   department?: { name: string };
-  responsible?: { full_name: string };
+  responsible?: { id?: number; full_name: string };
   passages?: PreDefensePassage[];
 }
 

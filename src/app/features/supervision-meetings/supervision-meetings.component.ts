@@ -199,6 +199,13 @@ export class SupervisionMeetingsComponent implements OnInit {
     });
   }
 
+  assignedToName(action: SupervisionAction): string {
+    if (typeof action.assigned_to === 'object' && action.assigned_to) {
+      return action.assigned_to.full_name;
+    }
+    return `Utilisateur ${action.assigned_to}`;
+  }
+
   private refreshMeeting(id: number): void {
     this.meetingService.get(id).subscribe({
       next: (response) => {

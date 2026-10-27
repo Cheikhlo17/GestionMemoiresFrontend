@@ -3,6 +3,7 @@ import { ThesisStatus } from '../models/thesis.model';
 export interface ThesisPayload {
   title: string;
   abstract?: string;
+  thesis_subject_id: number;
   department_id: number;
   program_id: number;
   academic_year_id: number;

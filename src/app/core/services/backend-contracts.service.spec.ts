@@ -83,15 +83,15 @@ describe('Laravel contract services', () => {
     confirm.flush({ message: 'Imported', data: {} });
   });
 
-  it('uses the pre-defense session nested passage endpoint and sends the contracted result field', () => {
+  it('uses the pre-defense session nested passage endpoint and sends the contracted outcome field', () => {
     const service = TestBed.inject(PreDefenseService);
-    service.updatePassage(4, 11, { result: 'ready' }).subscribe();
+    service.updatePassage(4, 11, { outcome: 'ready' }).subscribe();
 
     const request = http.expectOne(
       `${environment.apiUrl}/pre-defense-sessions/4/passages/11`
     );
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toEqual({ result: 'ready' });
+    expect(request.request.body).toEqual({ outcome: 'ready' });
     request.flush({ message: 'Updated', data: { id: 11 } });
   });
 

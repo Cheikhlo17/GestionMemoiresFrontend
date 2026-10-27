@@ -135,7 +135,7 @@
       <div class="action-row" *ngFor="let action of meeting.actions">
         <div>
           <strong>{{ action.description }}</strong>
-          <p>Responsable : {{ action.assigned_to }} · Échéance : {{ action.due_at | date:'medium' }}</p>
+          <p>Responsable : {{ assignedToName(action) }} · Échéance : {{ action.due_at | date:'medium' }}</p>
         </div>
         <mat-form-field appearance="outline">
           <mat-label>Statut</mat-label>

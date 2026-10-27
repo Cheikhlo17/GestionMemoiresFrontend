@@ -7,7 +7,7 @@ export interface AuthResponse {
 }
 
 export interface ApiSuccessResponse<T> {
-  message: string;
+  message?: string;
   data: T;
 }
 

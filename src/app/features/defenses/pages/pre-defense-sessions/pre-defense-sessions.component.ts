@@ -15,7 +15,7 @@ import { LookupService } from '../../../../core/services/lookup.service';
 import { PreDefenseService } from '../../../../core/services/pre-defense.service';
 import {
   PreDefensePassage,
-  PreDefensePassageResult,
+  PreDefensePassageOutcome,
   PreDefenseSession,
 } from '../../../../core/models/pre-defense.model';
 
@@ -54,7 +54,7 @@ export class PreDefenseSessionsComponent implements OnInit {
   showPassageForm = false;
   sessionForm = this.emptySessionForm();
   passageForm = this.emptyPassageForm();
-  readonly passageResult: Record<number, PreDefensePassageResult> = {};
+  readonly passageOutcome: Record<number, PreDefensePassageOutcome> = {};
 
   get canCreate(): boolean {
     return this.auth.hasRole('administrator', 'head-of-department', 'supervisor');
@@ -94,7 +94,7 @@ export class PreDefenseSessionsComponent implements OnInit {
         this.selectedSession = response.data;
         this.sessionForm = this.formFromSession(response.data);
         for (const passage of response.data.passages ?? []) {
-          this.passageResult[passage.id] = passage.result;
+          this.passageOutcome[passage.id] = passage.outcome;
         }
       },
       error: (error: HttpErrorResponse) => {
@@ -112,8 +112,18 @@ export class PreDefenseSessionsComponent implements OnInit {
   canManage(session: PreDefenseSession): boolean {
     return (
       this.auth.hasRole('administrator', 'head-of-department') ||
+      session.responsible?.id === this.auth.currentUser()?.id ||
       session.responsible_user_id === this.auth.currentUser()?.id
     );
+  }
+
+  outcomeLabel(outcome: PreDefensePassageOutcome): string {
+    const map: Record<PreDefensePassageOutcome, string> = {
+      pending: 'En attente',
+      ready: 'Prêt',
+      needs_revision: 'À revoir',
+    };
+    return map[outcome] ?? outcome;
   }
 
   createSession(): void {
@@ -192,7 +202,7 @@ export class PreDefenseSessionsComponent implements OnInit {
     }
     if (
       status === 'completed' &&
-      (session.passages ?? []).some((passage) => passage.result === 'pending')
+      (session.passages ?? []).some((passage) => passage.outcome === 'pending')
     ) {
       this.errorMessage = 'Tous les passages doivent avoir un résultat avant la clôture.';
       return;
@@ -256,13 +266,13 @@ export class PreDefenseSessionsComponent implements OnInit {
 
   updatePassage(passage: PreDefensePassage): void {
     const session = this.selectedSession;
-    const result = this.passageResult[passage.id];
-    if (!session || !result || this.saving) return;
+    const outcome = this.passageOutcome[passage.id];
+    if (!session || !outcome || this.saving) return;
     this.saving = true;
     this.errorMessage = '';
     this.preDefense
       .updatePassage(session.id, passage.id, {
-        result,
+        outcome,
         observations: passage.observations ?? undefined,
         recommendations: passage.recommendations ?? undefined,
       })
@@ -285,7 +295,7 @@ export class PreDefenseSessionsComponent implements OnInit {
         this.selectedSession = response.data;
         this.sessionForm = this.formFromSession(response.data);
         for (const passage of response.data.passages ?? []) {
-          this.passageResult[passage.id] = passage.result;
+          this.passageOutcome[passage.id] = passage.outcome;
         }
       },
       error: (error: HttpErrorResponse) => {

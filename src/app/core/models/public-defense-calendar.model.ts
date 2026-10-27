@@ -2,9 +2,10 @@ export interface PublicDefenseCalendarEvent {
   id: number;
   scheduled_at: string;
   title: string;
-  department?: { name: string } | null;
-  program?: { name: string } | null;
-  room?: { name: string; building?: string | null } | null;
+  department?: string | null;
+  program?: string | null;
+  room?: string | null;
+  room_building?: string | null;
 }
 
 export interface PublicDefenseCalendarFilters {
